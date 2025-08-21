@@ -1,12 +1,9 @@
 import JobDetail from "@/components/JobDetials/JobDetails";
 
-const WorkplaceJobDetials = ({ params }) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WorkplaceJobDetials = ({ params }: any) => {
   const { id } = params;
-  return (
-    <div>
-      <JobDetail id={id} />
-    </div>
-  );
+  return <JobDetail id={id} />;
 };
 
 export default WorkplaceJobDetials;

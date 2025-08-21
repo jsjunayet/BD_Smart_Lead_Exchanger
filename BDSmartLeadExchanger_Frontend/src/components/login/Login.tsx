@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
@@ -24,12 +23,13 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         formData
       );
 
       alert("Login successful!");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Login failed:", error.response?.data || error.message);
       alert(error.response?.data?.message || "Login failed!");
@@ -111,7 +111,7 @@ const Login = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Checkbox
+                  {/* <Checkbox
                     id="remember"
                     checked={formData.rememberMe}
                     onCheckedChange={(checked) =>
@@ -119,8 +119,8 @@ const Login = () => {
                         ...prev,
                         rememberMe: checked as boolean,
                       }))
-                    }
-                  />
+                    } */}
+                  {/* /> */}
                   <Label htmlFor="remember" className="text-sm">
                     Remember me
                   </Label>
@@ -143,7 +143,7 @@ const Login = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/signup"
                   className="text-blue-600 hover:underline font-medium"

@@ -102,20 +102,20 @@ const Deposit = () => {
     // Handle deposit submission logic here
   };
 
-  const stats = {
-    totalDeposited: depositHistory
-      .filter((d) => d.status === "success")
-      .reduce((sum, d) => sum + d.amount, 0),
-    pendingAmount: depositHistory
-      .filter((d) => d.status === "pending")
-      .reduce((sum, d) => sum + d.amount, 0),
-    totalTransactions: depositHistory.length,
-    successRate: Math.round(
-      (depositHistory.filter((d) => d.status === "success").length /
-        depositHistory.length) *
-        100
-    ),
-  };
+  // const stats = {
+  //   totalDeposited: depositHistory
+  //     .filter((d) => d.status === "success")
+  //     .reduce((sum, d) => sum + d.amount, 0),
+  //   pendingAmount: depositHistory
+  //     .filter((d) => d.status === "pending")
+  //     .reduce((sum, d) => sum + d.amount, 0),
+  //   totalTransactions: depositHistory.length,
+  //   successRate: Math.round(
+  //     (depositHistory.filter((d) => d.status === "success").length /
+  //       depositHistory.length) *
+  //       100
+  //   ),
+  // };
 
   return (
     <div className="space-y-6">

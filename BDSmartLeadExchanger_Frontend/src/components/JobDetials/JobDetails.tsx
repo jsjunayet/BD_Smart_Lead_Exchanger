@@ -1,5 +1,4 @@
 "use client";
-import { workplaceJobs } from "@/app/dashboard/workplace/page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,21 +6,24 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Clock, DollarSign, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { workplaceJobs } from "../dashboard/WorkPlace/WorkplacePage";
 
-interface WorkplaceJob {
+// interface WorkplaceJob {
+//   id: string;
+//   title: string;
+//   description: string;
+//   requirements: string;
+//   payment: number;
+//   postedBy: string;
+//   timeRemaining: string;
+//   difficulty: "easy" | "medium" | "hard";
+//   category: string;
+//   estimatedTime: string;
+// }
+interface JobDetailProps {
   id: string;
-  title: string;
-  description: string;
-  requirements: string;
-  payment: number;
-  postedBy: string;
-  timeRemaining: string;
-  difficulty: "easy" | "medium" | "hard";
-  category: string;
-  estimatedTime: string;
 }
-
-const JobDetail = ({ id }) => {
+const JobDetail = ({ id }: JobDetailProps) => {
   const router = useRouter();
   const job = workplaceJobs.find((job) => (job.id = id));
   const [jobData, setJobData] = useState({
@@ -42,7 +44,7 @@ const JobDetail = ({ id }) => {
     screenshot8File: null as File | null,
     thumbnail: null as File | null,
   });
-
+  console.log(jobData);
   useEffect(() => {
     if (!job) {
       router.push("/dashboard/workplace");

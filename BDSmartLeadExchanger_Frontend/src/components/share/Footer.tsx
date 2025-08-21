@@ -13,8 +13,8 @@ export const Footer = () => {
               <span className="text-xl font-bold">Smart Lead Exchange</span>
             </div>
             <p className="text-gray-400 text-sm">
-              Bangladesh's premier job exchange platform connecting talented
-              individuals with opportunities.
+              Bangladesh&apos;s premier job exchange platform connecting
+              talented individuals with opportunities.
             </p>
           </div>
 
