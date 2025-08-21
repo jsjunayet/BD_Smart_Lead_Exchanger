@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import mongoose, { Schema } from 'mongoose';
-import { IUser } from './auth.interface';
+import { IUser, IUserModel } from './auth.interface';
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
@@ -57,4 +57,4 @@ UserSchema.statics.isPasswordMatched = async function (
   return await bcrypt.compare(givenPassword, savedPassword);
 };
 
-export const User = mongoose.model<IUser>('User', UserSchema);
+export const User = mongoose.model<IUser, IUserModel>('User', UserSchema);

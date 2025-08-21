@@ -1,7 +1,8 @@
-import { Document } from 'mongoose';
+import { Document, Model } from 'mongoose';
 
 export type TLoginUser = {
   email: string;
+  userName?: string;
   password: string;
 };
 
@@ -20,4 +21,10 @@ export interface IUser extends Document {
   isApproved: boolean;
   isDeleted: boolean;
   status: boolean;
+}
+export interface IUserModel extends Model<IUser> {
+  isPasswordMatched(
+    givenPassword: string,
+    savedPassword: string,
+  ): Promise<boolean>;
 }

@@ -7,7 +7,7 @@ import AppError from '../errors/AppError';
 import { User } from '../modules/Auth/auth.model';
 import catchAsync from '../utils/catchAsync';
 
-const auth = (...requiredRoles) => {
+const auth = (...requiredRoles: string[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization;
 
@@ -41,19 +41,19 @@ const auth = (...requiredRoles) => {
     // checking if the user is blocked
     const userStatus = user?.status;
 
-    if (userStatus === 'blocked') {
+    if (userStatus === false) {
       throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked ! !');
     }
 
-    if (
-      user.passwordChangedAt &&
-      User.isJWTIssuedBeforePasswordChanged(
-        user.passwordChangedAt,
-        iat as number,
-      )
-    ) {
-      throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized !');
-    }
+    // if (
+    //   user.passwordChangedAt &&
+    //   User.isJWTIssuedBeforePasswordChanged(
+    //     user.passwordChangedAt,
+    //     iat as number,
+    //   )
+    // ) {
+    //   throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized !');
+    // }
 
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(

@@ -68,11 +68,10 @@ const loginUser = async (payload: TLoginUser) => {
   return {
     accessToken,
     refreshToken,
-    needsPasswordChange: user?.needsPasswordChange,
   };
 };
 
-const signUpUser = async (payload: IUser, file) => {
+const signUpUser = async (payload: IUser, file?: Express.Multer.File) => {
   if (file) {
     const imageName = `${payload.email}${payload?.name}`;
     const path = file?.path;
@@ -236,7 +235,7 @@ const forgetPassword = async (email: string) => {
 
   const resetUILink = `${config.reset_pass_ui_link}?email=${user.email}&token=${resetToken} `;
 
-  await sendEmail(user.email, resetUILink);
+  await sendEmail(user.email, resetUILink, 'Reset your Password');
 
   console.log(resetUILink);
 };
@@ -263,9 +262,6 @@ const resetPassword = async (
   if (userStatus === false) {
     throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked ! !');
   }
-  if (payload.email !== decoded.email) {
-    throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden!');
-  }
 
   const decoded = jwt.verify(
     token,
@@ -277,7 +273,9 @@ const resetPassword = async (
   if (payload.email !== decoded.email) {
     throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden!');
   }
-
+  if (payload.email !== decoded.email) {
+    throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden!');
+  }
   //hash new password
   const newHashedPassword = await bcrypt.hash(
     payload.newPassword,
