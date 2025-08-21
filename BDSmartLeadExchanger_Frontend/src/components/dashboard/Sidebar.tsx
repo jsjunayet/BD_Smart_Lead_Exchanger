@@ -20,6 +20,20 @@ import { Button } from "../ui/button";
 const Sidebar = () => {
   const pathname = usePathname();
 
+  // const menuItems = [
+  //   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  //   { title: "Workplace", href: "/dashboard/workplace", icon: Briefcase },
+  //   { title: "My Jobs", href: "/dashboard/my-jobs", icon: FileText },
+  //   { title: "Post Job", href: "/dashboard/job-post", icon: Plus },
+  //   { title: "Work History", href: "/dashboard/work-history", icon: History },
+  //   { title: "Deposit", href: "/dashboard/deposit", icon: CreditCard },
+  //   { title: "Profile", href: "/dashboard/profile", icon: User },
+  //   {
+  //     title: "Marketing Tools",
+  //     href: "/dashboard/marketing-tools",
+  //     icon: MessageSquare,
+  //   },
+  // ];
   const menuItems = [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { title: "Workplace", href: "/dashboard/workplace", icon: Briefcase },
