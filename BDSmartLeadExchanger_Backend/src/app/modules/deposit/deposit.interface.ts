@@ -7,7 +7,7 @@ export interface IDeposit extends Document {
   transactionId: string;
   bkashNumber: string;
   status: 'pending' | 'approved' | 'rejected';
-  rejectReason?: string;
+  message?: string;
   createdAt: Date;
   updatedAt: Date;
 }

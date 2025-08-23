@@ -13,7 +13,7 @@ const DepositSchema: Schema<IDeposit> = new Schema(
       default: 'pending',
       required: true,
     },
-    rejectReason: { type: String },
+    message: { type: String },
   },
   { timestamps: true },
 );

@@ -15,7 +15,7 @@ const updateDepositSchema = z.object({
     status: z.enum(['approved', 'rejected'], {
       required_error: 'Status required',
     }),
-    rejectReason: z.string().optional(), // required only if rejected
+    message: z.string().optional(), // required only if rejected
   }),
 });
 
