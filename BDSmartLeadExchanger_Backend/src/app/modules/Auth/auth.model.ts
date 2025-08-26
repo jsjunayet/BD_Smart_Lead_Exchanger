@@ -14,6 +14,8 @@ const UserSchema = new Schema<IUser>(
     password: { type: String, required: true },
     role: { type: String, default: 'user', required: true },
     image: { type: String, required: true, default: '' },
+    surfingBalance: { type: Number, default: 5 },
+    wallet: { type: Number, default: 0 },
     isApproved: { type: Boolean, default: false, required: true },
     status: { type: Boolean, default: true, required: true }, // true = active
     isDeleted: { type: Boolean, default: false, required: true },
@@ -57,4 +59,5 @@ UserSchema.statics.isPasswordMatched = async function (
   return await bcrypt.compare(givenPassword, savedPassword);
 };
 
-export const User = mongoose.model<IUser, IUserModel>('User', UserSchema);
+export const User =
+  mongoose.models.User || mongoose.model<IUser, IUserModel>('User', UserSchema);

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import app from './app';
 import config from './app/config';
 import seedSuperAdmin from './app/DB';
+import { startCronJobs } from './app/utils/startCronJobs';
 
 let server: Server;
 
@@ -11,6 +12,7 @@ async function main() {
     await mongoose.connect(config.database_url as string);
 
     seedSuperAdmin();
+    startCronJobs();
     server = app.listen(config.port, () => {
       console.log(`app is listening on port ${config.port}`);
     });

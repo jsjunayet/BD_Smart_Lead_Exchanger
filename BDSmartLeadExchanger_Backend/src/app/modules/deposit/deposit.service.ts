@@ -43,8 +43,9 @@ const updateDepositStatus = async (
     // Update user balance
     const user = await User.findById(deposit.user);
     if (!user) throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+    console.log(user);
 
-    user.amount = (user.amount || 0) + deposit.amount;
+    user.wallet = (user.wallet || 0) + deposit.amount;
     await user.save();
   } else if (status === 'rejected') {
     deposit.status = 'rejected';
