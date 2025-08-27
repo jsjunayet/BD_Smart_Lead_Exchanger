@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 import AppError from '../../errors/AppError';
+import { sendEmail } from '../../utils/sendEmail';
 import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import { User } from '../Auth/auth.model';
 
@@ -158,7 +159,13 @@ const ApprovedUser = async (adminId: string, userId: string) => {
     { isApproved: true },
     { new: true },
   );
+  const html = `
+    <h2>Hello ${user.name},</h2>
+    <p>Your account has been approved by Admin. 🎉</p>
+    <p>Now you can login using your email & password.</p>
+  `;
 
+  await sendEmail(user.email, html, 'Your Account Approved');
   return result;
 };
 

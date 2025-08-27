@@ -14,7 +14,11 @@ const submitJob = async (
   if (!job) throw new AppError(httpStatus.NOT_FOUND, 'Job not found');
   if (!job.approvedByAdmin)
     throw new AppError(httpStatus.BAD_REQUEST, 'Job not approved');
-
+  const user = await User.findById(userId);
+  if (!user) throw new AppError(httpStatus.NOT_FOUND, 'user not found');
+  if (user.wallet <= 0) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient balance');
+  }
   const submission = new JobSubmission({
     job: jobId,
     user: userId,
@@ -56,7 +60,7 @@ const reviewSubmission = async (
       throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient balance');
     }
 
-    if (action === 'approve') {
+    if (action.action === 'approve') {
       submission.status = 'approved';
 
       if (!owner || owner.surfingBalance <= 0) {
@@ -65,7 +69,7 @@ const reviewSubmission = async (
           'Insufficient surfingBalance balance',
         );
       }
-
+      console.log(owner);
       owner.surfingBalance -= 1;
       await owner.save({ session });
 

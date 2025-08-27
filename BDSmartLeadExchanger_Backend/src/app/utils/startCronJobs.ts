@@ -27,49 +27,62 @@ export const startCronJobs = () => {
     try {
       const now = new Date();
 
-      // সব pending submissions খুঁজে বের করবো
+      // সব pending submissions নিয়ে আসি
       const submissions = await JobSubmission.find({ status: 'submitted' })
         .populate('job')
         .populate('user')
         .session(session);
 
-      for (const submission of submissions) {
-        // যদি submission time 1 ঘন্টা হয়ে যায়
-        const diffInSeconds =
-          (now.getTime() - submission.submittedAt.getTime()) / 1000;
+      // group করি owner অনুযায়ী
+      const ownerSubmissionsMap = new Map<string, typeof submissions>();
 
-        if (diffInSeconds > 3600) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const job: any = submission.job;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const user: any = submission.user;
+      for (const sub of submissions) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const job: any = sub.job;
+        if (!ownerSubmissionsMap.has(job.postedBy.toString())) {
+          ownerSubmissionsMap.set(job.postedBy.toString(), []);
+        }
+        ownerSubmissionsMap.get(job.postedBy.toString()).push(sub);
+      }
 
-          // owner (job poster) খুঁজে বের করবো
-          const owner = await User.findById(job.postedBy).session(session);
+      // প্রতিটা owner আলাদা করে handle
+      for (const [ownerId, subs] of ownerSubmissionsMap.entries()) {
+        const owner = await User.findById(ownerId).session(session);
+        if (!owner) continue;
 
-          if (!owner || owner.surfingBalance <= 0) {
-            console.log(
-              `❌ Skipped submission ${submission._id}, insufficient balance for owner ${job.postedBy}`,
-            );
-            continue;
-          }
+        // শুধু expired submissions filter
+        const expiredSubs = subs.filter((s) => {
+          const diffInSeconds =
+            (now.getTime() - s.submittedAt.getTime()) / 1000;
+          return diffInSeconds > 3600;
+        });
 
-          // status update
-          submission.status = 'approved';
-          await submission.save({ session });
+        if (expiredSubs.length === 0) continue;
 
-          // balance transfer
-          owner.surfingBalance -= 1;
-          await owner.save({ session });
+        // owner এর balance sufficient কিনা check
+        if (owner.surfingBalance < expiredSubs.length) {
+          console.log(
+            `❌ Owner ${ownerId} balance insufficient: ${owner.surfingBalance}, needed ${expiredSubs.length}`,
+          );
+          continue;
+        }
+
+        // একসাথে deduct
+        owner.surfingBalance -= expiredSubs.length;
+        await owner.save({ session });
+
+        for (const sub of expiredSubs) {
+          sub.status = 'approved';
+          await sub.save({ session });
 
           await User.findByIdAndUpdate(
-            user._id,
+            sub.user._id,
             { $inc: { surfingBalance: 1 } },
             { session },
           );
 
           console.log(
-            `✅ Auto-approved submission ${submission._id} | Owner: ${owner._id} -> User: ${user._id}`,
+            `✅ Auto-approved submission ${sub._id} | Owner: ${owner._id} -> User: ${sub.user._id}`,
           );
         }
       }

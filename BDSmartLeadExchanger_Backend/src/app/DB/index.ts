@@ -1,10 +1,10 @@
 import { User } from '../modules/Auth/auth.model';
 
 const superUser = {
-  name: 'Super Admin',
-  userName: 'superadmin',
-  email: 'junayetshiblu0@gamil.com',
-  phoneNumber: '01700000000',
+  name: 'MD Morshed Hossain Saidy',
+  userName: 'morshed321',
+  email: 'bdsmartleadexchanger@gmail.com',
+  phoneNumber: '01571141226',
   country: 'Bangladesh',
   city: 'Dhaka',
   affiliateNetworkName: 'N/A',
@@ -12,7 +12,7 @@ const superUser = {
   password: 'admin123',
   role: 'superAdmin',
   image:
-    'https://res.cloudinary.com/dzxzxdsnq/image/upload/v1753603481/A-0001Junayet.jpg',
+    'https://i.ibb.co.com/TMdYQ8r5/Whats-App-Image-2025-08-27-at-11-13-05-b41682ea.jpg',
   isApproved: true,
 };
 

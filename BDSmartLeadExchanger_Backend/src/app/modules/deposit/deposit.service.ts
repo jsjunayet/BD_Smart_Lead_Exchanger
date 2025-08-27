@@ -47,7 +47,7 @@ const updateDepositStatus = async (
 
     user.wallet = (user.wallet || 0) + deposit.amount;
     await user.save();
-  } else if (status === 'rejected') {
+  } else if (status.status === 'rejected') {
     deposit.status = 'rejected';
     deposit.message = message || 'No reason provided';
     await deposit.save();

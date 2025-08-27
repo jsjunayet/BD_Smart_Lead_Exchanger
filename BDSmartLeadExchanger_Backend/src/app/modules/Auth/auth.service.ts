@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -233,9 +234,33 @@ const forgetPassword = async (email: string) => {
     '10m',
   );
 
-  const resetUILink = `${config.reset_pass_ui_link}?email=${user.email}&token=${resetToken} `;
+  const resetUILink = `${config.reset_pass_ui_link}?email=${user.email}&token=${resetToken}`;
 
-  await sendEmail(user.email, resetUILink, 'Reset your Password');
+  const emailTemplate = `
+  <div style="font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9;">
+    <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 30px;">
+      <h2 style="color: #333; text-align: center;">🔒 Password Reset Request</h2>
+      <p style="color: #555; font-size: 16px;">
+        Hello <b>${user.name || user.email}</b>,<br><br>
+        We received a request to reset your password. Click the button below to set up a new password:
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUILink}" 
+           style="display: inline-block; padding: 12px 20px; background: #4f46e5; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          Reset Password
+        </a>
+      </div>
+      <p style="color: #777; font-size: 14px;">
+        If you didn’t request this, you can safely ignore this email. This link will expire in <b>15 minutes</b>.
+      </p>
+      <p style="color: #777; font-size: 14px; margin-top: 30px; text-align: center;">
+        © ${new Date().getFullYear()} ResearchUstad. All rights reserved.
+      </p>
+    </div>
+  </div>
+`;
+
+  await sendEmail(user.email, emailTemplate, 'Reset your Password');
 
   console.log(resetUILink);
 };

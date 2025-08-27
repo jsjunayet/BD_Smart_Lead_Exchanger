@@ -3,6 +3,7 @@ import { AuthRoutes } from '../modules/Auth/auth.route';
 import { DepositRoutes } from '../modules/deposit/deposit.route';
 import { jobRoutes } from '../modules/job/job.route';
 import { JobSubmissionRoutes } from '../modules/JobSubmission/JobSubmission.route';
+import { ReportRoutes } from '../modules/report/report.route';
 import { UserRoutes } from '../modules/user/user.route';
 
 const router = Router();
@@ -27,6 +28,10 @@ const moduleRoutes = [
   {
     path: '/submition',
     route: JobSubmissionRoutes,
+  },
+  {
+    path: '/reports',
+    route: ReportRoutes,
   },
 ];
 
