@@ -1,7 +1,7 @@
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { BkashService } from './Bkash.service';
+import { BkashService } from './bkash.service';
 
 const createBkash = catchAsync(async (req, res) => {
   const result = await BkashService.createBkash(req.body);
@@ -45,7 +45,7 @@ const updateBkashStatus = catchAsync(async (req, res) => {
 });
 const DeletedBkashById = catchAsync(async (req, res) => {
   const Id = req.params.id;
-  const result = await BkashService.getBkashById(Id);
+  const result = await BkashService.DeletedBkashById(Id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

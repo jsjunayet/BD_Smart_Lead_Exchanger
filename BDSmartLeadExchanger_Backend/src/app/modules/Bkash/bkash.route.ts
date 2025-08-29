@@ -1,6 +1,6 @@
 import express from 'express';
 import auth from '../../middlewares/auth';
-import { BkashController } from './Bkash.controller';
+import { BkashController } from './bkash.controller';
 
 const router = express.Router();
 

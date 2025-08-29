@@ -1,5 +1,11 @@
+import AdminProfile from "@/components/AdminDashboard/Profile";
+
 const Profile = () => {
-  return <div></div>;
+  return (
+    <div>
+      <AdminProfile />
+    </div>
+  );
 };
 
 export default Profile;
