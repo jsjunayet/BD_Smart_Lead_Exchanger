@@ -19,7 +19,7 @@ const jobPost = async (
   file,
 ) => {
   if (file) {
-    const imageName = `${data.title}${data?.jobUrl}`;
+    const imageName = `${data.title}${data?.description}`;
     const path = file?.path;
     const { secure_url } = await sendImageToCloudinary(imageName, path);
     data.thumbnail = secure_url as string;

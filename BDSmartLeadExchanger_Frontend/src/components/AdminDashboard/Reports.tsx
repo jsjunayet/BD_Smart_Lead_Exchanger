@@ -1,350 +1,338 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+"use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { mockReports } from "@/data/mockData";
-import { useToast } from "@/hooks/use-toast";
-import { Report } from "@/types";
+import { Input } from "@/components/ui/input";
 import {
-  AlertTriangle,
-  Calendar,
-  CheckCircle,
-  Eye,
-  XCircle,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertTriangle, Check, Eye, Search, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-export default function AdminReports() {
-  const [reports, setReports] = useState<Report[]>(mockReports);
+interface Report {
+  id: string;
+  user: string;
+  submission: string;
+  submissionName: string;
+  jobTitle: string;
+  reason: string;
+  status: "pending" | "resolved" | "rejected";
+  createdAt: string;
+  adminResponse?: string;
+}
+
+const ReportManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const { toast } = useToast();
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [adminResponse, setAdminResponse] = useState("");
 
-  // Filter and paginate reports
-  const filteredReports = useMemo(() => {
-    return reports.filter((report) => {
-      const matchesSearch =
-        report.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.submission.job.title
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
+  const reportsData: Report[] = [
+    {
+      id: "RPT001",
+      user: "Alice Johnson",
+      submission: "SUB001",
+      submissionName: "Marketing Campaign Complete",
+      jobTitle: "Social Media Marketing Campaign",
+      reason:
+        "Submission was unfairly rejected. I completed all requirements but got rejected without proper explanation.",
+      status: "pending",
+      createdAt: "2024-01-15 02:30 PM",
+    },
+    {
+      id: "RPT002",
+      user: "Bob Smith",
+      submission: "SUB005",
+      submissionName: "Website Design Mockup",
+      jobTitle: "UI/UX Design Project",
+      reason:
+        "Job poster changed requirements after submission and then rejected my work.",
+      status: "resolved",
+      createdAt: "2024-01-14 11:15 AM",
+      adminResponse:
+        "After reviewing both submissions and communications, we found the requirements were clear from the beginning. However, we've provided additional feedback to help improve future submissions.",
+    },
+    {
+      id: "RPT003",
+      user: "Carol Brown",
+      submission: "SUB008",
+      submissionName: "Content Writing Sample",
+      jobTitle: "Blog Article Writing",
+      reason:
+        "Payment was not released even after approval. It's been 3 days since approval.",
+      status: "rejected",
+      createdAt: "2024-01-13 09:45 AM",
+      adminResponse:
+        "Payment was processed correctly. The delay was due to banking processing time, which is mentioned in our terms.",
+    },
+  ];
 
-      const matchesStatus =
-        statusFilter === "all" || report.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [reports, searchTerm, statusFilter]);
-
-  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
-  const paginatedReports = filteredReports.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const filteredReports = reportsData.filter(
+    (report) =>
+      report.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.reason.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Stats calculations
-  const stats = useMemo(() => {
-    const totalReports = reports.length;
-    const resolvedReports = reports.filter(
-      (r) => r.status === "resolved"
-    ).length;
-    const pendingReports = reports.filter((r) => r.status === "pending").length;
-    const rejectedReports = reports.filter(
-      (r) => r.status === "rejected"
-    ).length;
-
-    return { totalReports, resolvedReports, pendingReports, rejectedReports };
-  }, [reports]);
-
-  const handleResolveReport = (reportId: string) => {
-    setReports(
-      reports.map((report) =>
-        report._id === reportId ? { ...report, status: "resolved" } : report
-      )
-    );
-    toast({
-      title: "Report Resolved",
-      description: "Report has been marked as resolved",
-    });
-  };
-
-  const handleRejectReport = (reportId: string) => {
-    setReports(
-      reports.map((report) =>
-        report._id === reportId ? { ...report, status: "rejected" } : report
-      )
-    );
-    toast({
-      title: "Report Rejected",
-      description: "Report has been rejected",
-      variant: "destructive",
-    });
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "resolved":
         return (
-          <Badge className="bg-success text-success-foreground">Resolved</Badge>
+          <Badge className="bg-green-500 hover:bg-green-600">Resolved</Badge>
         );
       case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
+        return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>;
+      case "pending":
+        return (
+          <Badge className="bg-orange-500 hover:bg-orange-600">Pending</Badge>
+        );
       default:
-        return <Badge variant="secondary">Pending</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const getPriorityBadge = (reason: string) => {
+    const lowKeywords = ["question", "clarification", "help"];
+    const highKeywords = ["unfair", "scam", "fraud", "payment", "money"];
+
+    const lowerReason = reason.toLowerCase();
+    const hasHighPriority = highKeywords.some((keyword) =>
+      lowerReason.includes(keyword)
+    );
+    const hasLowPriority = lowKeywords.some((keyword) =>
+      lowerReason.includes(keyword)
+    );
+
+    if (hasHighPriority) {
+      return <Badge variant="destructive">High Priority</Badge>;
+    } else if (hasLowPriority) {
+      return <Badge variant="outline">Low Priority</Badge>;
+    }
+    return <Badge variant="secondary">Medium Priority</Badge>;
+  };
+
+  const handleReportAction = (
+    reportId: string,
+    action: "resolve" | "reject"
+  ) => {
+    toast.success(`Report ${action}d successfully`);
+    setAdminResponse("");
+    setSelectedReport(null);
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Report Management
-        </h1>
-        <p className="text-muted-foreground">
-          Review and handle user reports and issues.
-        </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Report Management</h1>
+        <Badge variant="outline">Admin Panel</Badge>
       </div>
 
-      <div className="grid gap-6">
-        {reports.map((report) => (
-          <Card
-            key={report._id}
-            className="bg-gradient-card shadow-card border-0"
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-warning" />
-                      <h3 className="text-lg font-semibold text-foreground">
-                        User Report
-                      </h3>
+      {/* Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Search Reports</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by user, job title, or reason..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reports Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Reports ({filteredReports.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Report ID</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Job Title</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredReports.map((report) => (
+                <TableRow key={report.id}>
+                  <TableCell className="font-medium">{report.id}</TableCell>
+                  <TableCell>{report.user}</TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{report.jobTitle}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Sub: {report.submission}
+                      </p>
                     </div>
-                    {getStatusBadge(report.status)}
-                  </div>
+                  </TableCell>
+                  <TableCell>{getStatusBadge(report.status)}</TableCell>
+                  <TableCell>{report.createdAt}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedReport(report)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center space-x-2">
+                              <AlertTriangle className="h-5 w-5 text-orange-500" />
+                              <span>Report Details - {report.id}</span>
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Reported By
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {report.user}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Job Title
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {report.jobTitle}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Status
+                                </label>
+                                <div className="mt-1">
+                                  {getStatusBadge(report.status)}
+                                </div>
+                              </div>
+                            </div>
 
-                  <div className="bg-muted/50 rounded-lg p-4 mb-4">
-                    <p className="text-sm font-medium text-foreground mb-2">
-                      Report Reason:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {report.reason}
-                    </p>
-                  </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Submission ID
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {report.submission}
+                                </p>
+                              </div>
+                            </div>
 
-                  <div className="flex items-center gap-6 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={report.user.image}
-                          alt={report.user.name}
-                        />
-                        <AvatarFallback>
-                          {report.user.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {report.user.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Reporter
-                        </p>
-                      </div>
-                    </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Submission Name
+                              </label>
+                              <p className="text-sm text-muted-foreground">
+                                {report.submissionName}
+                              </p>
+                            </div>
 
-                    <div className="h-4 w-px bg-border"></div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Report Reason
+                              </label>
+                              <div className="bg-muted p-4 rounded-lg mt-1">
+                                <p className="text-sm">{report.reason}</p>
+                              </div>
+                            </div>
 
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(report.createdAt)}
-                    </div>
-                  </div>
-
-                  <div className="bg-accent/50 rounded-lg p-4 mb-4">
-                    <p className="text-sm font-medium text-foreground mb-2">
-                      Reported Submission:
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={report.submission.user.image}
-                          alt={report.submission.user.name}
-                        />
-                        <AvatarFallback>
-                          {report.submission.user.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {report.submission.job.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          By {report.submission.user.name} •{" "}
-                          {formatDate(report.submission.submittedAt)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          Review Details
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-4xl">
-                        <DialogHeader>
-                          <DialogTitle>Report Details</DialogTitle>
-                          <DialogDescription>
-                            Submitted by {report.user.name} on{" "}
-                            {formatDate(report.createdAt)}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-6">
-                          <div>
-                            <h4 className="font-medium text-foreground mb-2">
-                              Report Reason
-                            </h4>
-                            <p className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
-                              {report.reason}
-                            </p>
-                          </div>
-
-                          <div>
-                            <h4 className="font-medium text-foreground mb-3">
-                              Reported Submission
-                            </h4>
-                            <div className="border rounded-lg p-4">
-                              <div className="flex items-center gap-3 mb-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage
-                                    src={report.submission.user.image}
-                                    alt={report.submission.user.name}
-                                  />
-                                  <AvatarFallback>
-                                    {report.submission.user.name.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <h5 className="font-medium text-foreground">
-                                    {report.submission.job.title}
-                                  </h5>
-                                  <p className="text-sm text-muted-foreground">
-                                    Submitted by {report.submission.user.name}{" "}
-                                    on{" "}
-                                    {formatDate(report.submission.submittedAt)}
+                            {report.adminResponse && (
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Admin Response
+                                </label>
+                                <div className="bg-green-50 border border-green-200 p-4 rounded-lg mt-1">
+                                  <p className="text-sm">
+                                    {report.adminResponse}
                                   </p>
                                 </div>
                               </div>
+                            )}
 
-                              <div className="mb-3">
-                                <p className="text-sm text-muted-foreground">
-                                  {report.submission.job.description}
-                                </p>
-                              </div>
-
-                              <div>
-                                <h6 className="text-sm font-medium text-foreground mb-2">
-                                  Proof Screenshots (
-                                  {report.submission.proofScreenshots.length})
-                                </h6>
-                                <div className="grid grid-cols-3 gap-3">
-                                  {report.submission.proofScreenshots.map(
-                                    (screenshot, index) => (
-                                      <img
-                                        key={index}
-                                        src={screenshot}
-                                        alt={`Screenshot ${index + 1}`}
-                                        className="w-full h-24 object-cover rounded border"
-                                      />
-                                    )
-                                  )}
+                            {report.status === "pending" && (
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="text-sm font-medium">
+                                    Admin Response
+                                  </label>
+                                  <Textarea
+                                    placeholder="Provide your response to this report..."
+                                    value={adminResponse}
+                                    onChange={(e) =>
+                                      setAdminResponse(e.target.value)
+                                    }
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button
+                                    onClick={() =>
+                                      handleReportAction(report.id, "resolve")
+                                    }
+                                    className="bg-green-500 hover:bg-green-600"
+                                  >
+                                    <Check className="h-4 w-4 mr-2" />
+                                    Resolve Report
+                                  </Button>
+                                  <Button
+                                    onClick={() =>
+                                      handleReportAction(report.id, "reject")
+                                    }
+                                    variant="destructive"
+                                  >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Reject Report
+                                  </Button>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between pt-4 border-t">
-                            <div className="text-sm text-muted-foreground">
-                              Status: {getStatusBadge(report.status)}
-                            </div>
-                            {report.status === "pending" && (
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="destructive"
-                                  onClick={() => handleRejectReport(report._id)}
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Dismiss Report
-                                </Button>
-                                <Button
-                                  className="bg-success hover:bg-success/90 text-success-foreground"
-                                  onClick={() =>
-                                    handleResolveReport(report._id)
-                                  }
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Take Action & Resolve
-                                </Button>
-                              </div>
                             )}
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
 
-                {report.status === "pending" && (
-                  <div className="flex flex-col gap-2 ml-4">
-                    <Button
-                      size="sm"
-                      className="bg-success hover:bg-success/90 text-success-foreground"
-                      onClick={() => handleResolveReport(report._id)}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Resolve
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRejectReport(report._id)}
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Dismiss
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                            <div className="text-sm text-muted-foreground pt-2 border-t">
+                              <p>Report submitted: {report.createdAt}</p>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default ReportManagement;

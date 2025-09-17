@@ -1,7 +1,7 @@
 import { model, Schema } from 'mongoose';
-import { IBkash } from './bkash.interface';
+import { IMobileBank } from './bkash.interface';
 
-const bkashSchema = new Schema<IBkash>(
+const bkashSchema = new Schema<IMobileBank>(
   {
     number: {
       type: String,
@@ -9,12 +9,16 @@ const bkashSchema = new Schema<IBkash>(
       unique: true,
     },
     rate: {
-      type: Number,
+      type: String,
       required: true,
-      min: 0,
+    },
+    type: {
+      type: String,
+      enum: ['bkash', 'nagad', 'rocket', 'upay', 'others'],
+      required: true,
     },
   },
   { timestamps: true },
 );
 
-export const Bkash = model<IBkash>('Bkash', bkashSchema);
+export const Bkash = model<IMobileBank>('Bkash', bkashSchema);

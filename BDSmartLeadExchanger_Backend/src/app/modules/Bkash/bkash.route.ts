@@ -13,7 +13,11 @@ router.patch(
 );
 
 // admin view all Bkashs
-router.get('/', auth('admin', 'superAdmin'), BkashController.getAllBkashs);
+router.get(
+  '/',
+  auth('admin', 'superAdmin', 'user'),
+  BkashController.getAllBkashs,
+);
 
 // single Bkash
 router.get('/:id', auth('admin', 'superAdmin'), BkashController.getBkashById);

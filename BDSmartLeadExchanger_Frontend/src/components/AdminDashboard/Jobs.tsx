@@ -1,322 +1,313 @@
-import { DataTablePagination } from "@/components/admin/DataTablePagination";
-import { SearchInput } from "@/components/admin/SearchInput";
-import { StatsCard } from "@/components/admin/StatsCard";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+"use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { mockJobs } from "@/data/mockData";
-import { useToast } from "@/hooks/use-toast";
-import { Job } from "@/types";
-import {
-  Briefcase,
-  Check,
-  CheckCircle,
-  Clock,
-  ExternalLink,
-  Eye,
-  Filter,
-  XCircle,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Check, Eye, Search, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-export default function AdminJobs() {
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  jobUrl: string;
+  screenshotTitles: string[];
+  thumbnail: string;
+  postedBy: string;
+  approvedByAdmin: boolean;
+  status: "pending" | "approved" | "rejected";
+  payment: number;
+  createdAt: string;
+}
+
+const JobManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const { toast } = useToast();
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
-  // Filter and paginate jobs
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const matchesSearch =
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const jobsData: Job[] = [
+    {
+      id: "JOB001",
+      title: "Social Media Marketing Campaign",
+      description:
+        "Create and manage social media posts for our brand awareness campaign",
+      jobUrl: "https://example.com/campaign",
+      screenshotTitles: [
+        "Homepage Screenshot",
+        "Campaign Results",
+        "Analytics Dashboard",
+      ],
+      thumbnail: "/placeholder.svg",
+      postedBy: "John Doe",
+      approvedByAdmin: false,
+      status: "pending",
+      payment: 50,
+      createdAt: "2024-01-15 10:30 AM",
+    },
+    {
+      id: "JOB002",
+      title: "Website Testing & Bug Report",
+      description: "Test our new website and provide detailed bug reports",
+      jobUrl: "https://example.com/testing",
+      screenshotTitles: ["Bug Screenshots", "Test Results"],
+      thumbnail: "/placeholder.svg",
+      postedBy: "Sarah Wilson",
+      approvedByAdmin: true,
+      status: "approved",
+      payment: 75,
+      createdAt: "2024-01-15 09:15 AM",
+    },
+    {
+      id: "JOB003",
+      title: "Content Writing Project",
+      description: "Write engaging blog posts about technology trends",
+      jobUrl: "https://example.com/content",
+      screenshotTitles: ["Article Draft", "Published Content"],
+      thumbnail: "/placeholder.svg",
+      postedBy: "Mike Johnson",
+      approvedByAdmin: false,
+      status: "rejected",
+      payment: 100,
+      createdAt: "2024-01-14 08:45 PM",
+    },
+  ];
 
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "approved" && job.approvedByAdmin) ||
-        (statusFilter === "pending" && !job.approvedByAdmin);
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [jobs, searchTerm, statusFilter]);
-
-  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
-  const paginatedJobs = filteredJobs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const filteredJobs = jobsData.filter(
+    (job) =>
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.postedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Stats calculations
-  const stats = useMemo(() => {
-    const totalJobs = jobs.length;
-    const approvedJobs = jobs.filter((j) => j.approvedByAdmin).length;
-    const pendingJobs = jobs.filter((j) => !j.approvedByAdmin).length;
-
-    return { totalJobs, approvedJobs, pendingJobs };
-  }, [jobs]);
-
-  const handleApproveJob = (jobId: string) => {
-    setJobs(
-      jobs.map((job) =>
-        job._id === jobId ? { ...job, approvedByAdmin: true } : job
-      )
-    );
-    toast({
-      title: "Job Approved",
-      description: "Job has been approved and is now visible to users",
-    });
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved":
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">Approved</Badge>
+        );
+      case "rejected":
+        return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>;
+      case "pending":
+        return (
+          <Badge className="bg-orange-500 hover:bg-orange-600">Pending</Badge>
+        );
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
   };
 
-  const handleRejectJob = (jobId: string) => {
-    setJobs(jobs.filter((job) => job._id !== jobId));
-    toast({
-      title: "Job Rejected",
-      description: "Job has been rejected and removed",
-      variant: "destructive",
-    });
+  const handleJobAction = (
+    jobId: string,
+    action: "approve" | "reject" | "delete"
+  ) => {
+    toast.success(`Job ${action}d successfully`);
+    setSelectedJob(null);
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Job Management
-        </h1>
-        <p className="text-muted-foreground">
-          Review, approve, and manage job postings.
-        </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Job Management</h1>
+        <Badge variant="outline">Admin Panel</Badge>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          title="Total Jobs"
-          value={stats.totalJobs}
-          icon={Briefcase}
-          description="All job postings"
-        />
-        <StatsCard
-          title="Approved Jobs"
-          value={stats.approvedJobs}
-          icon={Check}
-          description="Active job postings"
-        />
-        <StatsCard
-          title="Pending Jobs"
-          value={stats.pendingJobs}
-          icon={Clock}
-          description="Awaiting review"
-        />
-      </div>
+      {/* Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Search Jobs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by title, description, or posted by..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Search and Filter Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <SearchInput
-          placeholder="Search jobs by title or description..."
-          value={searchTerm}
-          onChange={setSearchTerm}
-        />
-
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px] bg-card border-border">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Jobs</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="pending">Pending Review</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid gap-6">
-        {paginatedJobs.map((job) => (
-          <Card key={job._id} className="bg-gradient-card shadow-card border-0">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-xl font-semibold text-foreground">
-                      {job.title}
-                    </h3>
-                    {job.approvedByAdmin ? (
-                      <Badge className="bg-success text-success-foreground">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Approved
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">Pending Review</Badge>
-                    )}
-                  </div>
-
-                  <p className="text-muted-foreground mb-4 line-clamp-2">
-                    {job.description}
-                  </p>
-
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={job.postedBy.image}
-                          alt={job.postedBy.name}
-                        />
-                        <AvatarFallback>
-                          {job.postedBy.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {job.postedBy.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Posted by
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="h-4 w-px bg-border"></div>
-
+      {/* Jobs Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Jobs ({filteredJobs.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Job ID</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Posted By</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredJobs.map((job) => (
+                <TableRow key={job.id}>
+                  <TableCell className="font-medium">{job.id}</TableCell>
+                  <TableCell>
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        Screenshots Required
-                      </p>
-                      <p className="text-xs text-foreground">
-                        {job.screenshotTitles.length} screenshots
+                      <p className="font-medium">{job.title}</p>
+                      <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                        {job.description}
                       </p>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <a
-                        href={job.jobUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        View Job URL
-                      </a>
-                    </Button>
-
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>{job.title}</DialogTitle>
-                          <DialogDescription>
-                            Job details and requirements
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="font-medium text-foreground mb-2">
-                              Description
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                              {job.description}
-                            </p>
-                          </div>
-
-                          <div>
-                            <h4 className="font-medium text-foreground mb-2">
-                              Required Screenshots
-                            </h4>
-                            <ul className="space-y-1">
-                              {job.screenshotTitles.map((title, index) => (
-                                <li
-                                  key={index}
-                                  className="text-sm text-muted-foreground"
-                                >
-                                  • {title}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          {job.thumbnail && (
-                            <div>
-                              <h4 className="font-medium text-foreground mb-2">
-                                Thumbnail
-                              </h4>
-                              <img
-                                src={job.thumbnail}
-                                alt="Job thumbnail"
-                                className="rounded-lg max-w-xs"
-                              />
+                  </TableCell>
+                  <TableCell>{job.postedBy}</TableCell>
+                  <TableCell>${job.payment}</TableCell>
+                  <TableCell>{getStatusBadge(job.status)}</TableCell>
+                  <TableCell>{job.createdAt}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedJob(job)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Job Details - {job.id}</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Title
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {job.title}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Posted By
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {job.postedBy}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Payment
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  ${job.payment}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Status
+                                </label>
+                                <div className="mt-1">
+                                  {getStatusBadge(job.status)}
+                                </div>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
 
-                <div className="flex flex-col gap-2 ml-4">
-                  {!job.approvedByAdmin && (
-                    <>
-                      <Button
-                        size="sm"
-                        className="bg-success hover:bg-success/90 text-success-foreground"
-                        onClick={() => handleApproveJob(job._id)}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRejectJob(job._id)}
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Description
+                              </label>
+                              <p className="text-sm text-muted-foreground bg-muted p-3 rounded mt-1">
+                                {job.description}
+                              </p>
+                            </div>
 
-      {/* Pagination */}
-      {filteredJobs.length > 0 && (
-        <DataTablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredJobs.length}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-          onItemsPerPageChange={setItemsPerPage}
-        />
-      )}
+                            <div>
+                              <label className="text-sm font-medium">
+                                Job URL
+                              </label>
+                              <p className="text-sm text-muted-foreground">
+                                {job.jobUrl}
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium">
+                                Screenshot Requirements
+                              </label>
+                              <ul className="text-sm text-muted-foreground mt-1 space-y-1">
+                                {job.screenshotTitles.map((title, index) => (
+                                  <li key={index} className="flex items-center">
+                                    <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                                    {title}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div className="flex space-x-2 pt-4">
+                              {job.status === "pending" && (
+                                <>
+                                  <Button
+                                    onClick={() =>
+                                      handleJobAction(job.id, "approve")
+                                    }
+                                    className="bg-green-500 hover:bg-green-600"
+                                  >
+                                    <Check className="h-4 w-4 mr-2" />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    onClick={() =>
+                                      handleJobAction(job.id, "reject")
+                                    }
+                                    variant="destructive"
+                                  >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              <Button
+                                onClick={() =>
+                                  handleJobAction(job.id, "delete")
+                                }
+                                variant="destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default JobManagement;

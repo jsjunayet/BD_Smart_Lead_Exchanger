@@ -1,376 +1,315 @@
-import { DataTablePagination } from "@/components/admin/DataTablePagination";
-import { SearchInput } from "@/components/admin/SearchInput";
-import { StatsCard } from "@/components/admin/StatsCard";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+"use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { mockSubmissions } from "@/data/mockData";
-import { useToast } from "@/hooks/use-toast";
-import { JobSubmission } from "@/types";
-import {
-  Calendar,
-  Check,
-  CheckCircle,
-  Clock,
-  Eye,
-  Filter,
-  Users,
-  X,
-  XCircle,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Check, Eye, Search, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-export default function AdminSubmissions() {
-  const [submissions, setSubmissions] =
-    useState<JobSubmission[]>(mockSubmissions);
+interface Submission {
+  id: string;
+  job: string;
+  jobTitle: string;
+  user: string;
+  authorName: string;
+  submissionName: string;
+  proofScreenshots: string[];
+  status: "submitted" | "approved" | "rejected";
+  submittedAt: string;
+  timeRemaining: string;
+}
+
+const SubmissionManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const { toast } = useToast();
+  const [selectedSubmission, setSelectedSubmission] =
+    useState<Submission | null>(null);
 
-  // Filter and paginate submissions
-  const filteredSubmissions = useMemo(() => {
-    return submissions.filter((submission) => {
-      const matchesSearch =
-        submission.job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        submission.user.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const submissionsData: Submission[] = [
+    {
+      id: "SUB001",
+      job: "JOB001",
+      jobTitle: "Social Media Marketing Campaign",
+      user: "user123",
+      authorName: "Alice Johnson",
+      submissionName: "Marketing Campaign Complete",
+      proofScreenshots: [
+        "/placeholder.svg",
+        "/placeholder.svg",
+        "/placeholder.svg",
+      ],
+      status: "submitted",
+      submittedAt: "2024-01-15 10:30 AM",
+      timeRemaining: "1h 23m",
+    },
+    {
+      id: "SUB002",
+      job: "JOB002",
+      jobTitle: "Website Testing & Bug Report",
+      user: "user456",
+      authorName: "Bob Smith",
+      submissionName: "Bug Testing Results",
+      proofScreenshots: ["/placeholder.svg", "/placeholder.svg"],
+      status: "approved",
+      submittedAt: "2024-01-15 09:15 AM",
+      timeRemaining: "Completed",
+    },
+    {
+      id: "SUB003",
+      job: "JOB003",
+      jobTitle: "Content Writing Project",
+      user: "user789",
+      authorName: "Carol Brown",
+      submissionName: "Tech Blog Articles",
+      proofScreenshots: ["/placeholder.svg"],
+      status: "rejected",
+      submittedAt: "2024-01-14 08:45 PM",
+      timeRemaining: "Expired",
+    },
+  ];
 
-      const matchesStatus =
-        statusFilter === "all" || submission.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [submissions, searchTerm, statusFilter]);
-
-  const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
-  const paginatedSubmissions = filteredSubmissions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const filteredSubmissions = submissionsData.filter(
+    (submission) =>
+      submission.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      submission.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      submission.submissionName.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Stats calculations
-  const stats = useMemo(() => {
-    const totalSubmissions = submissions.length;
-    const approvedSubmissions = submissions.filter(
-      (s) => s.status === "approved"
-    ).length;
-    const pendingSubmissions = submissions.filter(
-      (s) => s.status === "submitted"
-    ).length;
-    const rejectedSubmissions = submissions.filter(
-      (s) => s.status === "rejected"
-    ).length;
-
-    return {
-      totalSubmissions,
-      approvedSubmissions,
-      pendingSubmissions,
-      rejectedSubmissions,
-    };
-  }, [submissions]);
-
-  const handleApproveSubmission = (submissionId: string) => {
-    setSubmissions(
-      submissions.map((submission) =>
-        submission._id === submissionId
-          ? { ...submission, status: "approved" }
-          : submission
-      )
-    );
-    toast({
-      title: "Submission Approved",
-      description: "User submission has been approved and payment processed",
-    });
-  };
-
-  const handleRejectSubmission = (submissionId: string) => {
-    setSubmissions(
-      submissions.map((submission) =>
-        submission._id === submissionId
-          ? { ...submission, status: "rejected" }
-          : submission
-      )
-    );
-    toast({
-      title: "Submission Rejected",
-      description: "User submission has been rejected",
-      variant: "destructive",
-    });
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
         return (
-          <Badge className="bg-success text-success-foreground">Approved</Badge>
+          <Badge className="bg-green-500 hover:bg-green-600">Approved</Badge>
         );
       case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
+        return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>;
+      case "submitted":
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600">Submitted</Badge>
+        );
       default:
-        return <Badge variant="secondary">Pending Review</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const handleSubmissionAction = (
+    submissionId: string,
+    action: "approve" | "reject"
+  ) => {
+    toast.success(`Submission ${action}d successfully`);
+    setSelectedSubmission(null);
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Submission Management
-        </h1>
-        <p className="text-muted-foreground">
-          Review and manage job submissions from users.
-        </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Submission Management</h1>
+        <Badge variant="outline">Admin Panel</Badge>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard
-          title="Total Submissions"
-          value={stats.totalSubmissions}
-          icon={Users}
-          description="All submissions received"
-        />
-        <StatsCard
-          title="Approved"
-          value={stats.approvedSubmissions}
-          icon={Check}
-          description="Approved submissions"
-        />
-        <StatsCard
-          title="Pending"
-          value={stats.pendingSubmissions}
-          icon={Clock}
-          description="Awaiting review"
-        />
-        <StatsCard
-          title="Rejected"
-          value={stats.rejectedSubmissions}
-          icon={X}
-          description="Rejected submissions"
-        />
-      </div>
+      {/* Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Search Submissions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by job title, author name, or submission name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Search and Filter Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <SearchInput
-          placeholder="Search by job title or user name..."
-          value={searchTerm}
-          onChange={setSearchTerm}
-        />
-
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px] bg-card border-border">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Submissions</SelectItem>
-              <SelectItem value="submitted">Pending Review</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid gap-6">
-        {paginatedSubmissions.map((submission) => (
-          <Card
-            key={submission._id}
-            className="bg-gradient-card shadow-card border-0"
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {submission.job.title}
-                    </h3>
-                    {getStatusBadge(submission.status)}
-                  </div>
-
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={submission.user.image}
-                          alt={submission.user.name}
-                        />
-                        <AvatarFallback>
-                          {submission.user.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {submission.user.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          @{submission.user.userName}
-                        </p>
-                      </div>
+      {/* Submissions Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Submissions ({filteredSubmissions.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Submission ID</TableHead>
+                <TableHead>Job Title</TableHead>
+                <TableHead>Author Name</TableHead>
+                <TableHead>Submission Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Submitted At</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredSubmissions.map((submission) => (
+                <TableRow key={submission.id}>
+                  <TableCell className="font-medium">{submission.id}</TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{submission.jobTitle}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Job ID: {submission.job}
+                      </p>
                     </div>
+                  </TableCell>
+                  <TableCell>{submission.authorName}</TableCell>
+                  <TableCell>{submission.submissionName}</TableCell>
+                  <TableCell>{getStatusBadge(submission.status)}</TableCell>
 
-                    <div className="h-4 w-px bg-border"></div>
+                  <TableCell>{submission.submittedAt}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedSubmission(submission)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          <DialogHeader>
+                            <DialogTitle>
+                              Submission Details - {submission.id}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Job Title
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {submission.jobTitle}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Author
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {submission.authorName}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Status
+                                </label>
+                                <div className="mt-1">
+                                  {getStatusBadge(submission.status)}
+                                </div>
+                              </div>
+                            </div>
 
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      Submitted {formatDate(submission.submittedAt)}
-                    </div>
-                  </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Submission Name
+                              </label>
+                              <p className="text-sm text-muted-foreground bg-muted p-3 rounded mt-1">
+                                {submission.submissionName}
+                              </p>
+                            </div>
 
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {submission.job.description}
-                  </p>
-
-                  <div className="flex items-center gap-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          Review Submission
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-4xl">
-                        <DialogHeader>
-                          <DialogTitle>
-                            Review Submission: {submission.job.title}
-                          </DialogTitle>
-                          <DialogDescription>
-                            Submitted by {submission.user.name} on{" "}
-                            {formatDate(submission.submittedAt)}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-6">
-                          <div>
-                            <h4 className="font-medium text-foreground mb-2">
-                              Job Description
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                              {submission.job.description}
-                            </p>
-                          </div>
-
-                          <div>
-                            <h4 className="font-medium text-foreground mb-4">
-                              Proof Screenshots (
-                              {submission.proofScreenshots.length})
-                            </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                              {submission.proofScreenshots.map(
-                                (screenshot, index) => (
-                                  <div key={index} className="relative">
-                                    <img
-                                      src={screenshot}
-                                      alt={`Screenshot ${index + 1}`}
-                                      className="w-full h-32 object-cover rounded-lg border"
-                                    />
-                                    <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                                      {index + 1}
+                            <div>
+                              <label className="text-sm font-medium">
+                                Proof Screenshots (
+                                {submission.proofScreenshots.length})
+                              </label>
+                              <div className="grid grid-cols-3 gap-4 mt-2">
+                                {submission.proofScreenshots.map(
+                                  (screenshot, index) => (
+                                    <div
+                                      key={index}
+                                      className="border rounded-lg overflow-hidden"
+                                    >
+                                      <img
+                                        src={screenshot}
+                                        alt={`Proof ${index + 1}`}
+                                        className="w-full h-32 object-cover"
+                                      />
+                                      <div className="p-2">
+                                        <p className="text-xs text-muted-foreground">
+                                          Screenshot {index + 1}
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
-                                )
-                              )}
+                                  )
+                                )}
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="flex items-center justify-between pt-4 border-t">
-                            <div className="text-sm text-muted-foreground">
-                              Status: {getStatusBadge(submission.status)}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium">
+                                  Submitted At
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {submission.submittedAt}
+                                </p>
+                              </div>
                             </div>
+
                             {submission.status === "submitted" && (
-                              <div className="flex gap-2">
+                              <div className="flex space-x-2 pt-4">
                                 <Button
-                                  variant="destructive"
                                   onClick={() =>
-                                    handleRejectSubmission(submission._id)
+                                    handleSubmissionAction(
+                                      submission.id,
+                                      "approve"
+                                    )
                                   }
+                                  className="bg-green-500 hover:bg-green-600"
                                 >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Reject
+                                  <Check className="h-4 w-4 mr-2" />
+                                  Approve Submission
                                 </Button>
                                 <Button
-                                  className="bg-success hover:bg-success/90 text-success-foreground"
                                   onClick={() =>
-                                    handleApproveSubmission(submission._id)
+                                    handleSubmissionAction(
+                                      submission.id,
+                                      "reject"
+                                    )
                                   }
+                                  variant="destructive"
                                 >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Approve
+                                  <X className="h-4 w-4 mr-2" />
+                                  Reject Submission
                                 </Button>
                               </div>
                             )}
                           </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-
-                {submission.status === "submitted" && (
-                  <div className="flex flex-col gap-2 ml-4">
-                    <Button
-                      size="sm"
-                      className="bg-success hover:bg-success/90 text-success-foreground"
-                      onClick={() => handleApproveSubmission(submission._id)}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRejectSubmission(submission._id)}
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Reject
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Pagination */}
-      {filteredSubmissions.length > 0 && (
-        <DataTablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredSubmissions.length}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-          onItemsPerPageChange={setItemsPerPage}
-        />
-      )}
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default SubmissionManagement;

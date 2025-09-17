@@ -3,29 +3,32 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Clock, DollarSign, Users } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { workplaceJobs } from "../dashboard/WorkPlace/WorkplacePage";
 
-// interface WorkplaceJob {
-//   id: string;
-//   title: string;
-//   description: string;
-//   requirements: string;
-//   payment: number;
-//   postedBy: string;
-//   timeRemaining: string;
-//   difficulty: "easy" | "medium" | "hard";
-//   category: string;
-//   estimatedTime: string;
-// }
-interface JobDetailProps {
+interface WorkplaceJob {
   id: string;
+  title: string;
+  description: string;
+  requirements: string;
+  payment: number;
+  postedBy: string;
+  timeRemaining: string;
+  difficulty: "easy" | "medium" | "hard";
+  category: string;
+  estimatedTime: string;
 }
-const JobDetail = ({ id }: JobDetailProps) => {
-  const router = useRouter();
-  const job = workplaceJobs.find((job) => (job.id = id));
+
+const SinglePage = ({ jobId }) => {
+  const navigate = useRouter();
+  const [job, setJob] = useState<WorkplaceJob | null>(null);
+  useEffect(() => {
+    // Simulate fetching job by ID
+    const foundJob = workplaceJobs.find((j) => j.id === jobId);
+    setJob(foundJob || null);
+  }, [jobId]);
   const [jobData, setJobData] = useState({
     title: "",
     tasks: "",
@@ -44,23 +47,9 @@ const JobDetail = ({ id }: JobDetailProps) => {
     screenshot8File: null as File | null,
     thumbnail: null as File | null,
   });
-  console.log(jobData);
-  useEffect(() => {
-    if (!job) {
-      router.push("/dashboard/workplace");
-      return;
-    }
-    // Pre-fill some data from the job
-    setJobData((prev) => ({
-      ...prev,
-      title: job.title,
-      tasks: job.description,
-    }));
-  }, [job, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/dashboard/workplace");
   };
 
   const handleInputChange = (field: string, value: string | File | null) => {
@@ -100,7 +89,7 @@ const JobDetail = ({ id }: JobDetailProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.push("/dashboard/workplace")}
+            onClick={() => navigate("/workplace")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Workplace
@@ -128,26 +117,6 @@ const JobDetail = ({ id }: JobDetailProps) => {
               <div>
                 <p className="text-sm text-muted-foreground">Posted by</p>
                 <p className="font-semibold">{job.postedBy}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-success/10 rounded-lg">
-                <DollarSign className="w-5 h-5 text-success" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Payment</p>
-                <p className="font-semibold text-success">
-                  ${job.payment.toFixed(2)}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-warning/10 rounded-lg">
-                <Clock className="w-5 h-5 text-warning" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Time Remaining</p>
-                <p className="font-semibold">{job.timeRemaining}</p>
               </div>
             </div>
           </div>
@@ -308,7 +277,7 @@ const JobDetail = ({ id }: JobDetailProps) => {
               <div className="flex justify-center pt-6">
                 <Button
                   type="submit"
-                  className="px-12 py-3 bg-success hover:bg-success/90"
+                  className="px-12 py-3  bg-primary hover:bg-primary/90"
                 >
                   Submit Job
                 </Button>
@@ -321,4 +290,4 @@ const JobDetail = ({ id }: JobDetailProps) => {
   );
 };
 
-export default JobDetail;
+export default SinglePage;

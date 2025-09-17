@@ -3,6 +3,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -12,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertTriangle,
   CheckCircle,
@@ -22,6 +30,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface WorkHistoryItem {
   id: string;
@@ -39,7 +48,7 @@ const workHistoryData: WorkHistoryItem[] = [
   {
     id: "1",
     jobBy: { name: "Dhiraj Roy", avatar: "" },
-    status: "success",
+    status: "pending",
     jobTitle: "সাইনআপ",
     workTime: "05:30 PM",
     date: "11/06/2025",
@@ -76,11 +85,47 @@ const workHistoryData: WorkHistoryItem[] = [
     workTime: "10:29 PM",
     date: "18/01/2025",
   },
+  {
+    id: "6",
+    jobBy: { name: "Md Saiful Islam", avatar: "" },
+    status: "rejected",
+    jobTitle: "🔶 শুধু সাইন আপ করুন 🔶",
+    workTime: "10:21 PM",
+    date: "18/01/2025",
+  },
+  {
+    id: "7",
+    jobBy: { name: "Afran Sabbir", avatar: "" },
+    status: "success",
+    jobTitle: "সাইন আপ বা অ্যাপ ইনস্টল করুন",
+    workTime: "10:10 PM",
+    date: "18/01/2025",
+  },
+  {
+    id: "8",
+    jobBy: { name: "Noor A Jafrana", avatar: "" },
+    status: "success",
+    jobTitle: "তেমন কিছুর মাইট্টো মিট্ট আর কিছুর হটে",
+    workTime: "10:06 PM",
+    date: "18/01/2025",
+  },
+  {
+    id: "9",
+    jobBy: { name: "Afran Sabbir", avatar: "" },
+    status: "success",
+    jobTitle: "সাইন আপ বা অ্যাপ ইনস্টল করুন",
+    workTime: "09:53 PM",
+    date: "18/01/2025",
+  },
 ];
 
-const WorkHistory = () => {
+export const WorkHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedItem, setSelectedItem] = useState<WorkHistoryItem | null>(
+    null
+  );
+  const [reportReason, setReportReason] = useState("");
   const itemsPerPage = 5;
 
   const getStatusBadge = (status: string) => {
@@ -96,9 +141,7 @@ const WorkHistory = () => {
           </Badge>
         );
       case "pending":
-        return (
-          <Badge className="bg-warning text-warning-foreground">Pending</Badge>
-        );
+        return <Badge className="bg-info text-info-foreground">Pending</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -111,7 +154,7 @@ const WorkHistory = () => {
       case "rejected":
         return <XCircle className="h-4 w-4 text-destructive" />;
       case "pending":
-        return <Clock className="h-4 w-4 text-warning" />;
+        return <Clock className="h-4 w-4 text-info" />;
       default:
         return <AlertTriangle className="h-4 w-4 text-muted-foreground" />;
     }
@@ -143,6 +186,16 @@ const WorkHistory = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
+  };
+
+  const handleReport = () => {
+    if (!reportReason.trim()) {
+      toast.error("Please provide a reason for the report");
+      return;
+    }
+    toast.success("Report submitted successfully. Admin will review it.");
+    setReportReason("");
+    setSelectedItem(null);
   };
 
   // Reset to first page when search changes
@@ -221,14 +274,67 @@ const WorkHistory = () => {
                           View
                         </Button>
                         {item.status === "rejected" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive"
-                          >
-                            <Flag className="h-4 w-4 mr-1" />
-                            Report
-                          </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive"
+                                onClick={() => setSelectedItem(item)}
+                              >
+                                <Flag className="h-4 w-4 mr-1" />
+                                Report
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Report Submission Issue
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    Job: {item.jobTitle}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    Posted by: {item.jobBy.name}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Status: Rejected
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium">
+                                    Reason for Report
+                                  </label>
+                                  <Textarea
+                                    placeholder="Describe the issue with this rejection (e.g., unfair rejection, requirements not met, etc.)..."
+                                    value={reportReason}
+                                    onChange={(e) =>
+                                      setReportReason(e.target.value)
+                                    }
+                                    className="mt-1"
+                                    rows={4}
+                                  />
+                                </div>
+                                <div className="flex justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedItem(null);
+                                      setReportReason("");
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button onClick={handleReport}>
+                                    Submit Report
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         )}
                       </div>
                     </TableCell>
@@ -285,4 +391,3 @@ const WorkHistory = () => {
     </div>
   );
 };
-export default WorkHistory;

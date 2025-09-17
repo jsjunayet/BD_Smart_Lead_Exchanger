@@ -13,7 +13,7 @@ import { createToken, verifyToken } from './auth.utils';
 const loginUser = async (payload: TLoginUser) => {
   // checking if the user exists by email or userName
   const user = await User.findOne({
-    $or: [{ email: payload.email }, { userName: payload.userName }],
+    $or: [{ email: payload.identifier }, { userName: payload.identifier }],
   });
 
   if (!user) {

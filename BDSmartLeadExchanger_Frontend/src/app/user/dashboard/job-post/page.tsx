@@ -5,10 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createjobs } from "@/services/jobService";
 import { AlertCircle, CheckCircle, Clock, PlusCircle } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const JobPost = () => {
+  const [loading, setloading] = useState(false);
   const [jobData, setJobData] = useState({
     title: "",
     tasks: "",
@@ -24,10 +27,44 @@ const JobPost = () => {
     thumbnail: null as File | null,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  };
+    const jobPayload = {
+      title: jobData.title,
+      description: jobData.tasks,
+      jobUrl: jobData.jobUrl,
+      screenshotTitles: [
+        jobData.screenshot1Title,
+        jobData.screenshot2Title,
+        jobData.screenshot3Title,
+        jobData.screenshot4Title,
+      ].filter(Boolean),
+    };
 
+    const formData = new FormData();
+    if (jobData.thumbnail) {
+      formData.append("file", jobData.thumbnail);
+    }
+    formData.append("data", JSON.stringify(jobPayload));
+    try {
+      setloading(true);
+      const res = await createjobs(formData);
+      console.log(res);
+      if (res?.success) {
+        toast.success(res.message);
+        setloading(false);
+        setJobData({});
+      } else {
+        res.errorSources.forEach((err: any) => {
+          toast(err.message); // or use a custom toast component
+        });
+        setloading(false);
+      }
+    } catch (error) {
+      setloading(false);
+      toast(error.response?.data?.message || "Job Create failed!");
+    }
+  };
   const handleInputChange = (field: string, value: string | File | null) => {
     setJobData((prev) => ({ ...prev, [field]: value }));
   };
@@ -187,9 +224,13 @@ const JobPost = () => {
                   />
                 </div>
 
-                <div className="flex justify-center pt-4">
-                  <Button type="submit" className="px-8">
-                    Submit
+                <div className="flex justify-center pt-4 w-full">
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="px-8 w-full"
+                  >
+                    {loading ? " Submit..." : " Submit"}
                   </Button>
                 </div>
               </form>

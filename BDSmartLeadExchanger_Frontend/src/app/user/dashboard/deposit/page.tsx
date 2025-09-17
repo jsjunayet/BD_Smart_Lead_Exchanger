@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  AlertCircle,
   CheckCircle,
   Clock,
   CreditCard,
@@ -227,75 +226,66 @@ const Deposit = () => {
 
             {/* Instructions */}
             <div className="space-y-6">
-              <Card className="border-blue-200 bg-blue-50">
+              <Card className="border-blue-200 bg-blue-50 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg text-blue-900">
-                    How to Deposit
+                  <CardTitle className="text-lg md:text-xl font-semibold text-blue-900">
+                    কিভাবে টাকা জমা করবেন
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm text-blue-800 space-y-3">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      1
-                    </div>
-                    <div>
-                      <p className="font-medium">Send Money via bKash</p>
-                      <p>
-                        Send money to our bKash merchant number:{" "}
-                        <strong>01XXXXXXXXX</strong>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      2
-                    </div>
-                    <div>
-                      <p className="font-medium">Save Transaction Details</p>
-                      <p>Copy the transaction ID from your bKash receipt</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      3
-                    </div>
-                    <div>
-                      <p className="font-medium">Submit Request</p>
-                      <p>Fill out the form and submit your deposit request</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      4
-                    </div>
-                    <div>
-                      <p className="font-medium">Wait for Verification</p>
-                      <p>
-                        Our admin will verify and approve your deposit within 24
-                        hours
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
-              <Card className="border-orange-200 bg-orange-50">
-                <CardContent className="p-4">
+                <CardContent className="text-sm text-blue-800 space-y-4">
+                  {/* Step 1 */}
                   <div className="flex items-start space-x-3">
-                    <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
-                    <div className="text-sm text-orange-700">
-                      <p className="font-medium mb-1">Important Notes</p>
-                      <ul className="space-y-1">
-                        <li>• Double-check transaction ID before submitting</li>
-                        <li>
-                          • Keep your bKash receipt until deposit is approved
-                        </li>
-                        <li>• Deposits are processed within 24 hours</li>
-                        <li>
-                          • Contact support if deposit is not approved within 48
-                          hours
-                        </li>
-                      </ul>
+                    <StepNumber>১</StepNumber>
+                    <div>
+                      <p className="font-medium">বিকাশে টাকা পাঠান</p>
+                      <p>
+                        আমাদের বিকাশ মার্চেন্ট নম্বরে টাকা পাঠান:{" "}
+                        <strong className="text-blue-900">01XXXXXXXXX</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="flex items-start space-x-3">
+                    <StepNumber>২</StepNumber>
+                    <div>
+                      <p className="font-medium">বর্তমান ডলার রেট জানুন</p>
+                      <p>
+                        বর্তমানে ১ ডলারের মূল্য{" "}
+                        <span className="font-semibold text-blue-900">
+                          ১৩২ টাকা
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="flex items-start space-x-3">
+                    <StepNumber>৩</StepNumber>
+                    <div>
+                      <p className="font-medium">লেনদেনের তথ্য সংরক্ষণ করুন</p>
+                      <p>বিকাশ রিসিপ্ট থেকে ট্রানজেকশন আইডি কপি করে রাখুন</p>
+                    </div>
+                  </div>
+
+                  {/* Step 4 */}
+                  <div className="flex items-start space-x-3">
+                    <StepNumber>৪</StepNumber>
+                    <div>
+                      <p className="font-medium">রিকোয়েস্ট সাবমিট করুন</p>
+                      <p>ফর্ম পূরণ করে আপনার জমার রিকোয়েস্ট পাঠিয়ে দিন</p>
+                    </div>
+                  </div>
+
+                  {/* Step 5 */}
+                  <div className="flex items-start space-x-3">
+                    <StepNumber>৫</StepNumber>
+                    <div>
+                      <p className="font-medium">যাচাইয়ের জন্য অপেক্ষা করুন</p>
+                      <p>
+                        অ্যাডমিন ২৪ ঘন্টার মধ্যে আপনার জমা যাচাই ও অনুমোদন করবে
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -394,3 +384,10 @@ const Deposit = () => {
 };
 
 export default Deposit;
+function StepNumber({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+      {children}
+    </div>
+  );
+}

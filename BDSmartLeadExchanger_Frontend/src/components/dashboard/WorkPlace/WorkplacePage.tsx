@@ -12,18 +12,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+
 import {
   AlertTriangle,
   CheckCircle,
-  Clock,
-  DollarSign,
-  Eye,
   Filter,
   Search,
   Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
 interface WorkplaceJob {
   id: string;
   title: string;
@@ -79,7 +78,7 @@ export const workplaceJobs: WorkplaceJob[] = [
   },
 ];
 
-const WorkplacePage = () => {
+const Workplace = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -124,7 +123,9 @@ const WorkplacePage = () => {
 
   const handleAcceptJob = () => {
     if (selectedJob) {
-      router.push(`/dashboard/workplace/${selectedJob.id}`);
+      router.push(`/user/dashboard/workplace/${selectedJob.id}`, {
+        state: { job: selectedJob },
+      });
     }
     setIsDialogOpen(false);
   };
@@ -151,71 +152,6 @@ const WorkplacePage = () => {
             {filteredJobs.length} Available
           </Badge>
         </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Eye className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Available Jobs</p>
-                <p className="font-semibold">{workplaceJobs.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-success/10 rounded-lg">
-                <CheckCircle className="h-4 w-4 text-success" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Jobs Completed Today
-                </p>
-                <p className="font-semibold">0</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-warning/10 rounded-lg">
-                <DollarSign className="h-4 w-4 text-warning" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Potential Earnings
-                </p>
-                <p className="font-semibold">
-                  $
-                  {workplaceJobs
-                    .reduce((sum, job) => sum + job.payment, 0)
-                    .toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-info/10 rounded-lg">
-                <Clock className="h-4 w-4 text-info" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Avg. Completion</p>
-                <p className="font-semibold">10 min</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Filters */}
@@ -328,25 +264,6 @@ const WorkplacePage = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="text-center space-y-6">
-            <p className="text-lg">
-              Do you want to start this job:{" "}
-              <strong>{selectedJob?.title}</strong>?
-            </p>
-            <div className="flex justify-center space-x-4">
-              <Button onClick={handleAcceptJob} className="px-8">
-                Yes
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleRejectJob}
-                className="px-8"
-              >
-                No
-              </Button>
-            </div>
-          </div>
-
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
@@ -366,4 +283,4 @@ const WorkplacePage = () => {
   );
 };
 
-export default WorkplacePage;
+export default Workplace;

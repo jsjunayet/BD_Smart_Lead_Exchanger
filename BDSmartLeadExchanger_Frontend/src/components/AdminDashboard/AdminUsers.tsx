@@ -1,6 +1,4 @@
-import { DataTablePagination } from "@/components/admin/DataTablePagination";
-import { SearchInput } from "@/components/admin/SearchInput";
-import { StatsCard } from "@/components/admin/StatsCard";
+"use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,32 +27,49 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockUsers } from "@/data/mockData";
-import { useToast } from "@/hooks/use-toast";
+
+import { getAlluser } from "@/services/userService";
 import { User } from "@/types";
 import {
+  Check,
   Crown,
   Download,
-  Edit,
+  Eye,
   Filter,
   Trash2,
   User as UserIcon,
+  X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { DataTablePagination } from "../share/DataTablePagination";
+import { SearchInput } from "../share/SearchInput";
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
-  const { toast } = useToast();
-
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await getAlluser();
+        console.log(res); // calls the API route above
+        setUsers(res.data);
+      } catch (error) {
+        console.error("Failed to fetch users", error);
+      }
+    };
+    fetchUsers();
+  }, []);
+  console.log(users);
   // Filter and paginate users
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
+    return users?.filter((user) => {
       const matchesSearch =
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,18 +87,18 @@ export default function AdminUsers() {
     });
   }, [users, searchTerm, statusFilter, roleFilter]);
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = filteredUsers.slice(
+  const totalPages = Math?.ceil(filteredUsers?.length / itemsPerPage);
+  const paginatedUsers = filteredUsers?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   // Stats calculations
   const stats = useMemo(() => {
-    const totalUsers = users.length;
-    const activeUsers = users.filter((u) => u.status && u.isApproved).length;
-    const pendingUsers = users.filter((u) => !u.isApproved).length;
-    const adminUsers = users.filter((u) => u.role === "admin").length;
+    const totalUsers = users?.length;
+    const activeUsers = users?.filter((u) => u.status && u.isApproved).length;
+    const pendingUsers = users?.filter((u) => !u.isApproved).length;
+    const adminUsers = users?.filter((u) => u.role === "admin").length;
 
     return { totalUsers, activeUsers, pendingUsers, adminUsers };
   }, [users]);
@@ -134,7 +149,7 @@ export default function AdminUsers() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Users"
           value={stats.totalUsers}
@@ -159,7 +174,7 @@ export default function AdminUsers() {
           icon={Crown}
           description="Platform administrators"
         />
-      </div>
+      </div> */}
 
       {/* Filters and Search */}
       <Card className="bg-gradient-card shadow-card border-0">
@@ -217,7 +232,7 @@ export default function AdminUsers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedUsers.map((user) => (
+              {paginatedUsers?.map((user) => (
                 <TableRow key={user._id} className="hover:bg-muted/20">
                   <TableCell>
                     <div className="flex items-center space-x-3">
@@ -235,7 +250,7 @@ export default function AdminUsers() {
                           )}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          @{user.userName}
+                          {user.userName}
                         </div>
                       </div>
                     </div>
@@ -269,6 +284,7 @@ export default function AdminUsers() {
                   <TableCell>
                     <Select
                       value={user.role}
+                      disabled={user.role === "superAdmin"} // ✅ superAdmin হলে পরিবর্তন করা যাবে না
                       onValueChange={(value: "admin" | "user") =>
                         handleRoleChange(user._id, value)
                       }
@@ -292,103 +308,184 @@ export default function AdminUsers() {
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end space-x-2">
+
+                  <TableCell className=" text-right">
+                    <div className="flex items-center space-x-2">
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
-                            variant="ghost"
-                            size="icon"
+                            variant="outline"
+                            size="sm"
                             onClick={() => setSelectedUser(user)}
-                            className="h-8 w-8"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
+                        <DialogContent className="max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Edit User: {user.name}</DialogTitle>
+                            <DialogTitle>User Details</DialogTitle>
                             <DialogDescription>
-                              View and modify user details and settings.
+                              Full information of{" "}
+                              <strong>{selectedUser?.name}</strong>
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">
-                                  Full Name
-                                </label>
-                                <p className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
-                                  {user.name}
+
+                          {selectedUser ? (
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Name</p>
+                                <p className="font-medium">
+                                  {selectedUser.name}
                                 </p>
                               </div>
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">
+                              <div>
+                                <p className="text-muted-foreground">
                                   Username
-                                </label>
-                                <p className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
-                                  @{user.userName}
+                                </p>
+                                <p className="font-medium">
+                                  @{selectedUser.userName}
                                 </p>
                               </div>
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">
-                                  Email Address
-                                </label>
-                                <p className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
-                                  {user.email}
+                              <div>
+                                <p className="text-muted-foreground">Email</p>
+                                <p className="font-medium">
+                                  {selectedUser.email}
                                 </p>
                               </div>
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">
-                                  Phone Number
-                                </label>
-                                <p className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
-                                  {user.phoneNumber}
+                              <div>
+                                <p className="text-muted-foreground">Phone</p>
+                                <p className="font-medium">
+                                  {selectedUser.phoneNumber}
                                 </p>
                               </div>
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">
-                                  Publisher ID
-                                </label>
-                                <p className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
-                                  {user.publisherId}
+                              <div>
+                                <p className="text-muted-foreground">Country</p>
+                                <p className="font-medium">
+                                  {selectedUser.country}
                                 </p>
                               </div>
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">
+                              <div>
+                                <p className="text-muted-foreground">City</p>
+                                <p className="font-medium">
+                                  {selectedUser.city}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">
                                   Affiliate Network
-                                </label>
-                                <p className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
-                                  {user.affiliateNetworkName}
+                                </p>
+                                <p className="font-medium">
+                                  {selectedUser.affiliateNetworkName}
                                 </p>
                               </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-6">
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">
-                                  Location
-                                </label>
-                                <p className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
-                                  {user.city}, {user.country}
+                              <div>
+                                <p className="text-muted-foreground">
+                                  Publisher ID
+                                </p>
+                                <p className="font-medium">
+                                  {selectedUser.publisherId}
                                 </p>
                               </div>
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">
-                                  Account Status
-                                </label>
-                                <div className="p-2">
-                                  {getStatusBadge(user)}
+                              <div>
+                                <p className="text-muted-foreground">Role</p>
+                                <p className="font-medium">
+                                  {selectedUser.role}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Wallet</p>
+                                <p className="font-medium">
+                                  ${selectedUser.wallet}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">
+                                  Surfing Balance
+                                </p>
+                                <p className="font-medium">
+                                  ${selectedUser.surfingBalance}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">
+                                  Approved
+                                </p>
+                                <p className="font-medium">
+                                  {selectedUser.isApproved ? "Yes" : "No"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Status</p>
+                                <p className="font-medium">
+                                  {selectedUser.status ? "Active" : "Inactive"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">
+                                  Created At
+                                </p>
+                                <p className="font-medium">
+                                  {new Date(
+                                    selectedUser.createdAt
+                                  ).toLocaleString()}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">
+                                  Updated At
+                                </p>
+                                <p className="font-medium">
+                                  {new Date(
+                                    selectedUser.updatedAt
+                                  ).toLocaleString()}
+                                </p>
+                              </div>
+
+                              {/* Profile Image */}
+                              {selectedUser.image && (
+                                <div className="col-span-2 pt-4">
+                                  <p className="text-muted-foreground">
+                                    Profile Image
+                                  </p>
+                                  <img
+                                    src={selectedUser.image}
+                                    alt={selectedUser.name}
+                                    className="w-24 h-24 rounded-full border mt-1"
+                                  />
                                 </div>
-                              </div>
+                              )}
+                              {user?.isApproved === false && (
+                                <div className="space-y-3">
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      onClick={() =>
+                                        handleStatusUpdate(user.id, "approved")
+                                      }
+                                      className="bg-green-500 hover:bg-green-600"
+                                    >
+                                      <Check className="h-4 w-4 mr-2" />
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      onClick={() =>
+                                        handleStatusUpdate(user.id, "rejected")
+                                      }
+                                      variant="destructive"
+                                    >
+                                      <X className="h-4 w-4 mr-2" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                          <DialogFooter>
-                            <Button variant="outline">Cancel</Button>
-                            <Button>Save Changes</Button>
-                          </DialogFooter>
+                          ) : (
+                            <p className="text-center text-muted-foreground">
+                              No user selected
+                            </p>
+                          )}
                         </DialogContent>
                       </Dialog>
-
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
@@ -433,7 +530,7 @@ export default function AdminUsers() {
       <DataTablePagination
         currentPage={currentPage}
         totalPages={totalPages}
-        totalItems={filteredUsers.length}
+        totalItems={filteredUsers?.length}
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
         onItemsPerPageChange={(newItemsPerPage) => {

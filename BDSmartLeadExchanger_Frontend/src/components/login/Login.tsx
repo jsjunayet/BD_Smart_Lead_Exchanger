@@ -9,30 +9,47 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
+import { getCurrentUser, loginUser } from "@/services/authService";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "",
     password: "",
   });
-
+  const router = useRouter();
+  const [loading, setloading] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-        formData
-      );
-
-      alert("Login successful!");
+      setloading(true);
+      const res = await loginUser(formData);
+      if (res?.success) {
+        toast.success(res.message);
+        setFormData({});
+        setloading(false);
+        const session = await getCurrentUser();
+        console.log(session);
+        if (session.role === "admin" || session.role === "superAdmin") {
+          router.refresh();
+          router.push("/admin/dashboard");
+        } else {
+          router.refresh();
+          router.push("/user/dashboard");
+        }
+      } else {
+        toast.error(res.message);
+        setloading(false);
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Login failed:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Login failed!");
+      toast(error.response?.data?.message || "Login failed!");
+      setloading(false);
     }
 
     // Handle login logic here
@@ -64,14 +81,17 @@ const Login = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="identifier">Email or Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
+                  id="identifier"
+                  type="text"
+                  placeholder="Enter your email or username"
+                  value={formData.identifier}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, email: e.target.value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      identifier: e.target.value,
+                    }))
                   }
                   required
                   className="h-11"
@@ -137,7 +157,7 @@ const Login = () => {
                 type="submit"
                 className="w-full h-11 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
               >
-                Sign In
+                {loading ? "Sign In..." : "Sign In"}
               </Button>
             </form>
 

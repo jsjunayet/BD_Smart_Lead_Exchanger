@@ -1,4 +1,7 @@
-export interface IBkash {
-  number: string; // bkash account number
-  rate: number; // service charge / rate
+export type MobileBankType = 'bkash' | 'nagad' | 'rocket' | 'upay' | 'others';
+
+export interface IMobileBank {
+  type: MobileBankType; // bank type
+  number: string; // account number
+  rate: string; // service charge / rate
 }

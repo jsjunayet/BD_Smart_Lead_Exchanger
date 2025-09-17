@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@/context/UserContext";
 import { cn } from "@/lib/utils";
 import {
   Briefcase,
@@ -8,46 +9,78 @@ import {
   History,
   LayoutDashboard,
   MessageSquare,
-  Phone,
   Plus,
   User,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Button } from "../ui/button";
 
 const Sidebar = () => {
+  const { user, loading } = useUser(); // assume আপনার context এ loading আছে
   const pathname = usePathname();
 
-  // const menuItems = [
-  //   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  //   { title: "Workplace", href: "/dashboard/workplace", icon: Briefcase },
-  //   { title: "My Jobs", href: "/dashboard/my-jobs", icon: FileText },
-  //   { title: "Post Job", href: "/dashboard/job-post", icon: Plus },
-  //   { title: "Work History", href: "/dashboard/work-history", icon: History },
-  //   { title: "Deposit", href: "/dashboard/deposit", icon: CreditCard },
-  //   { title: "Profile", href: "/dashboard/profile", icon: User },
-  //   {
-  //     title: "Marketing Tools",
-  //     href: "/dashboard/marketing-tools",
-  //     icon: MessageSquare,
-  //   },
-  // ];
-  const menuItems = [
-    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { title: "Workplace", href: "/dashboard/workplace", icon: Briefcase },
-    { title: "My Jobs", href: "/dashboard/my-jobs", icon: FileText },
-    { title: "Post Job", href: "/dashboard/job-post", icon: Plus },
-    { title: "Work History", href: "/dashboard/work-history", icon: History },
-    { title: "Deposit", href: "/dashboard/deposit", icon: CreditCard },
-    { title: "Profile", href: "/dashboard/profile", icon: User },
+  const userMenu = [
+    { title: "Dashboard", href: "/user/dashboard", icon: LayoutDashboard },
+    { title: "Workplace", href: "/user/dashboard/workplace", icon: Briefcase },
+    { title: "My Jobs", href: "/user/dashboard/my-jobs", icon: FileText },
+    { title: "Post Job", href: "/user/dashboard/job-post", icon: Plus },
+    {
+      title: "Work History",
+      href: "/user/dashboard/work-history",
+      icon: History,
+    },
+    { title: "Deposit", href: "/user/dashboard/deposit", icon: CreditCard },
+    { title: "Profile", href: "/user/dashboard/profile", icon: User },
     {
       title: "Marketing Tools",
-      href: "/dashboard/marketing-tools",
+      href: "/user/dashboard/marketing-tools",
       icon: MessageSquare,
     },
   ];
+
+  const adminMenu = [
+    { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    {
+      title: "User Management",
+      href: "/admin/dashboard/all-users",
+      icon: User,
+    },
+    {
+      title: "Deposit Management",
+      href: "/admin/dashboard/all-deposits",
+      icon: CreditCard,
+    },
+    {
+      title: "Job Management",
+      href: "/admin/dashboard/all-jobs",
+      icon: Briefcase,
+    },
+    {
+      title: "All Submissions",
+      href: "/admin/dashboard/all-submissions",
+      icon: FileText,
+    },
+    { title: "Reports", href: "/admin/dashboard/all-reports", icon: History },
+    {
+      title: "Payment Setup",
+      href: "/admin/dashboard/payment-setup",
+      icon: User,
+    },
+    { title: "Profile", href: "/admin/dashboard/profile", icon: User },
+  ];
+
+  if (loading) {
+    return (
+      <div className="w-full lg:w-64 bg-white shadow-lg border-r border-gray-200 lg:min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  const role = user?.role; // এখানে default দেবেন না, না হলে সবসময় "user" হয়ে যায়
+  const menuItems =
+    role === "admin" || role === "superAdmin" ? adminMenu : userMenu;
 
   return (
     <div className="w-full lg:w-64 bg-white shadow-lg border-r border-gray-200 lg:min-h-[calc(100vh-4rem)] relative">
@@ -59,8 +92,10 @@ const Sidebar = () => {
               <AvatarFallback>MS</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-sm">Md Morshed</h3>
-              <p className="text-xs text-muted-foreground">Hossain Saidy</p>
+              <h3 className="font-semibold text-sm">{user?.name || "Guest"}</h3>
+              <p className="text-xs text-muted-foreground truncate w-38">
+                {user?.email || ""}
+              </p>
             </div>
           </div>
         </div>
@@ -95,18 +130,6 @@ const Sidebar = () => {
             })}
           </div>
         </nav>
-        <div className=" border-t border-border mt-4 pt-4">
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm" className="flex-1">
-              <MessageSquare className="h-4 w-4 mr-1" />
-              WhatsApp
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1">
-              <Phone className="h-4 w-4 mr-1" />
-              Telegram
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   );

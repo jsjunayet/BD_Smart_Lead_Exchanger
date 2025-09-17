@@ -4,8 +4,8 @@ import { IBkash } from './bkash.interface';
 import { Bkash } from './bkash.model';
 
 const createBkash = async (body: IBkash) => {
-  const { number, rate } = body;
-  const newBkash = await Bkash.create({ number, rate });
+  const { number, rate, type } = body;
+  const newBkash = await Bkash.create({ number, rate, type });
   return newBkash;
 };
 const getAllBkashs = async () => {

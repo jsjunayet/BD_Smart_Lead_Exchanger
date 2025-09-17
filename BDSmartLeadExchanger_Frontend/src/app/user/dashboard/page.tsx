@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Briefcase, CheckCircle, TrendingUp, Wallet } from "lucide-react";
 
 const Dashboard = () => {
   const userStats = {
-    availableBalance: 45.5,
+    availableBalance: 1,
     surfingBalance: 23,
     completedJobs: 15,
     pendingJobs: 3,
@@ -20,22 +19,6 @@ const Dashboard = () => {
       status: "completed",
       amount: 5000,
       completedBy: 8,
-    },
-    {
-      id: 2,
-      title: "Social Media Management",
-      client: "Digital Agency",
-      status: "pending",
-      amount: 3000,
-      completedBy: 3,
-    },
-    {
-      id: 3,
-      title: "Content Writing",
-      client: "Blog Network",
-      status: "approved",
-      amount: 2500,
-      completedBy: 12,
     },
   ];
 
@@ -78,24 +61,21 @@ const Dashboard = () => {
             <p className="text-xs text-gray-600 mt-1">
               Daily deduction: ৳{userStats.dailyDeduction}
             </p>
-            <div className="mt-2">
-              <div className="flex justify-between text-xs mb-1">
-                <span>Days remaining</span>
-                <span>
-                  {Math.floor(
-                    userStats.availableBalance / userStats.dailyDeduction
-                  )}{" "}
-                  days
-                </span>
-              </div>
-              <Progress
-                value={(userStats.availableBalance / 100) * 100}
-                className="h-2"
-              />
-            </div>
           </CardContent>
         </Card>
 
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Jobs Posted</CardTitle>
+            <Briefcase className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {recentJobs.length}
+            </div>
+            <p className="text-xs text-gray-600 mt-1">Active job posts</p>
+          </CardContent>
+        </Card>
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -118,20 +98,6 @@ const Dashboard = () => {
             </div> */}
           </CardContent>
         </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Jobs Posted</CardTitle>
-            <Briefcase className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {recentJobs.length}
-            </div>
-            <p className="text-xs text-gray-600 mt-1">Active job posts</p>
-          </CardContent>
-        </Card>
-
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
