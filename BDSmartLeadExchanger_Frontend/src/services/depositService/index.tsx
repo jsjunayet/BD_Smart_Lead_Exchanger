@@ -4,11 +4,16 @@ import { cookies } from "next/headers";
 
 //  get all posts
 export const getAlldeposit = async () => {
+  const token = (await cookies()).get("accessToken")!.value;
+
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_API}/deposit/get-all`,
       {
         method: "GET",
+        headers: {
+          Authorization: `${token}`,
+        },
         next: {
           tags: ["deposit"],
         },
@@ -22,18 +27,39 @@ export const getAlldeposit = async () => {
     return Error(error.message);
   }
 };
+export const getOwndeposit = async () => {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API}/deposit/get-own`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${token}`,
+        },
+        next: {
+          tags: ["deposit"],
+        },
+      }
+    );
 
+    const data = await res.json();
+    return data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return Error(error.message);
+  }
+};
 // create post
 export const createdeposit = async (formdata): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API}/deposit/create`,
+      `${process.env.NEXT_PUBLIC_BASE_API}/deposit/added`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formdata),
@@ -57,7 +83,7 @@ export const Approveddeposit = async (id: string, data): Promise<any> => {
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),

@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { getWorkPlace } from "@/services/jobService";
 
 import {
   AlertTriangle,
@@ -21,7 +22,7 @@ import {
   Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface WorkplaceJob {
   id: string;
@@ -36,47 +37,47 @@ interface WorkplaceJob {
   estimatedTime: string;
 }
 
-export const workplaceJobs: WorkplaceJob[] = [
-  {
-    id: "1",
-    title: "সাইনআপ করুন",
-    description:
-      "একটি নতুন ওয়েবসাইটে সাইনআপ করুন এবং ইমেইল ভেরিফিকেশন সম্পন্ন করুন।",
-    requirements: "Valid email address, Phone number verification required",
-    payment: 0.5,
-    postedBy: "Dhiraj Roy",
-    timeRemaining: "23h 45m",
-    difficulty: "easy",
-    category: "Sign Up",
-    estimatedTime: "5 minutes",
-  },
-  {
-    id: "2",
-    title: "অ্যাপ ইনস্টল ও রিভিউ",
-    description:
-      "Play Store থেকে একটি অ্যাপ ইনস্টল করুন এবং ৫ স্টার রিভিউ দিন।",
-    requirements: "Android device, Google Play Store access",
-    payment: 0.75,
-    postedBy: "Afran Sabbir",
-    timeRemaining: "12h 20m",
-    difficulty: "easy",
-    category: "App Install",
-    estimatedTime: "10 minutes",
-  },
-  {
-    id: "3",
-    title: "সোশ্যাল মিডিয়া ফলো",
-    description:
-      "Facebook, Instagram, এবং YouTube চ্যানেল ফলো করুন এবং স্ক্রিনশট জমা দিন।",
-    requirements: "Active social media accounts",
-    payment: 1.0,
-    postedBy: "Hasan Ahmed",
-    timeRemaining: "6h 15m",
-    difficulty: "medium",
-    category: "Social Media",
-    estimatedTime: "15 minutes",
-  },
-];
+// export const workplaceJobs: WorkplaceJob[] = [
+//   {
+//     id: "1",
+//     title: "সাইনআপ করুন",
+//     description:
+//       "একটি নতুন ওয়েবসাইটে সাইনআপ করুন এবং ইমেইল ভেরিফিকেশন সম্পন্ন করুন।",
+//     requirements: "Valid email address, Phone number verification required",
+//     payment: 0.5,
+//     postedBy: "Dhiraj Roy",
+//     timeRemaining: "23h 45m",
+//     difficulty: "easy",
+//     category: "Sign Up",
+//     estimatedTime: "5 minutes",
+//   },
+//   {
+//     id: "2",
+//     title: "অ্যাপ ইনস্টল ও রিভিউ",
+//     description:
+//       "Play Store থেকে একটি অ্যাপ ইনস্টল করুন এবং ৫ স্টার রিভিউ দিন।",
+//     requirements: "Android device, Google Play Store access",
+//     payment: 0.75,
+//     postedBy: "Afran Sabbir",
+//     timeRemaining: "12h 20m",
+//     difficulty: "easy",
+//     category: "App Install",
+//     estimatedTime: "10 minutes",
+//   },
+//   {
+//     id: "3",
+//     title: "সোশ্যাল মিডিয়া ফলো",
+//     description:
+//       "Facebook, Instagram, এবং YouTube চ্যানেল ফলো করুন এবং স্ক্রিনশট জমা দিন।",
+//     requirements: "Active social media accounts",
+//     payment: 1.0,
+//     postedBy: "Hasan Ahmed",
+//     timeRemaining: "6h 15m",
+//     difficulty: "medium",
+//     category: "Social Media",
+//     estimatedTime: "15 minutes",
+//   },
+// ];
 
 const Workplace = () => {
   const router = useRouter();
@@ -84,8 +85,8 @@ const Workplace = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedJob, setSelectedJob] = useState<WorkplaceJob | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const filteredJobs = workplaceJobs.filter((job) => {
+  const [workplaceJobs, setworkplaceJobs] = useState<WorkplaceJob[]>([]);
+  const filteredJobs = workplaceJobs?.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -94,6 +95,18 @@ const Workplace = () => {
       job.category.toLowerCase().includes(categoryFilter.toLowerCase());
     return matchesSearch && matchesCategory;
   });
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const res = await getWorkPlace();
+        setworkplaceJobs(res?.data);
+      } catch (error) {
+        console.error("Error fetching workplace jobs:", error.message);
+      }
+    };
+
+    fetchJobs(); // ✅ Call the function
+  }, []);
 
   const getDifficultyBadge = (difficulty: string) => {
     switch (difficulty) {
@@ -122,8 +135,9 @@ const Workplace = () => {
   };
 
   const handleAcceptJob = () => {
+    console.log(selectedJob);
     if (selectedJob) {
-      router.push(`/user/dashboard/workplace/${selectedJob.id}`, {
+      router.push(`/user/dashboard/workplace/${selectedJob?._id}`, {
         state: { job: selectedJob },
       });
     }
@@ -149,7 +163,7 @@ const Workplace = () => {
         <div className="flex items-center space-x-2">
           <Badge variant="outline">
             <Users className="w-3 h-3 mr-1" />
-            {filteredJobs.length} Available
+            {filteredJobs?.length} Available
           </Badge>
         </div>
       </div>
@@ -201,7 +215,7 @@ const Workplace = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredJobs.map((job) => (
+                {filteredJobs?.map((job) => (
                   <tr
                     key={job.id}
                     className="border-b hover:bg-muted/50 cursor-pointer"
@@ -211,14 +225,14 @@ const Workplace = () => {
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
                           <AvatarFallback>
-                            {job.postedBy
-                              .split(" ")
+                            {job?.postedBy.name
+                              ?.split(" ")
                               .map((n) => n[0])
                               .join("")
                               .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="font-medium">{job.postedBy}</span>
+                        <span className="font-medium">{job.postedBy.name}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4">
@@ -227,7 +241,9 @@ const Workplace = () => {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">
-                      {job.timeRemaining}
+                      {job.createdAt
+                        ? new Date(job.createdAt).toLocaleString()
+                        : "N/A"}
                     </td>
                   </tr>
                 ))}
@@ -237,7 +253,7 @@ const Workplace = () => {
         </CardContent>
       </Card>
 
-      {filteredJobs.length === 0 && (
+      {filteredJobs?.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
             <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -259,7 +275,10 @@ const Workplace = () => {
               {selectedJob && getDifficultyBadge(selectedJob.difficulty)}
             </DialogTitle>
             <DialogDescription>
-              Posted by {selectedJob?.postedBy} • {selectedJob?.timeRemaining}{" "}
+              Posted by {selectedJob?.postedBy?.name} •{" "}
+              {selectedJob?.createdAt
+                ? new Date(selectedJob?.createdAt).toLocaleString()
+                : "N/A"}{" "}
               remaining
             </DialogDescription>
           </DialogHeader>

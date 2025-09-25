@@ -50,6 +50,7 @@ const jobSubmitted = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 const getAllSubmission = catchAsync(async (req, res) => {
   const result = await JobSubmissionService.getAllSubmission();
   sendResponse(res, {

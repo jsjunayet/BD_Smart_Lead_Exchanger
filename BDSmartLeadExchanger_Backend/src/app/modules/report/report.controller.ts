@@ -26,7 +26,8 @@ const getAllReports = catchAsync(async (req, res) => {
 });
 const getMyReports = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const result = await ReportService.getMyReports(userId);
+  const submissionId = req.params.id;
+  const result = await ReportService.getMyReports(userId, submissionId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -46,8 +47,7 @@ const getReportById = catchAsync(async (req, res) => {
 });
 const updateReportStatus = catchAsync(async (req, res) => {
   const userId = req.params.id;
-  const { status } = req.body;
-  const result = await ReportService.updateReportStatus(userId, status);
+  const result = await ReportService.updateReportStatus(userId, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

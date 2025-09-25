@@ -4,13 +4,44 @@ import { cookies } from "next/headers";
 
 //  get all posts
 export const getAlljobs = async () => {
+  const token = (await cookies()).get("accessToken")!.value;
+
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/job/get-all`, {
       method: "GET",
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
       next: {
         tags: ["jobs"],
       },
     });
+
+    const data = await res.json();
+    return data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return Error(error.message);
+  }
+};
+export const getAllDataDashbaord = async () => {
+  const token = (await cookies()).get("accessToken")!.value;
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API}/dashboard/stats`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json",
+        },
+        next: {
+          tags: ["jobs"],
+        },
+      }
+    );
 
     const data = await res.json();
     return data;
@@ -45,9 +76,14 @@ export const getWorkPlace = async () => {
   }
 };
 export const getOwnjobs = async () => {
+  const token = (await cookies()).get("accessToken")!.value;
+
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/job/get-own`, {
       method: "GET",
+      headers: {
+        Authorization: `${token}`,
+      },
       next: {
         tags: ["jobs"],
       },
@@ -82,7 +118,7 @@ export const createjobs = async (formdata): Promise<any> => {
   }
 };
 
-export const Updatejobs = async (id: string, data): Promise<any> => {
+export const Updatejobs = async (id: string, formdata): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
@@ -91,10 +127,9 @@ export const Updatejobs = async (id: string, data): Promise<any> => {
       {
         method: "PATCH",
         headers: {
-          Authorization: ` ${token}`,
-          "Content-Type": "application/json",
+          Authorization: `${token}`,
         },
-        body: JSON.stringify(data),
+        body: formdata,
       }
     );
     const result = await res.json();
@@ -106,17 +141,21 @@ export const Updatejobs = async (id: string, data): Promise<any> => {
   }
 };
 export const ApprovedOrRejectJobs = async (id: string, data): Promise<any> => {
+  console.log(data);
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/job/action`, {
-      method: "PATCH",
-      headers: {
-        Authorization: ` ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API}/job/action/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: ` ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: data }),
+      }
+    );
     const result = await res.json();
     revalidateTag("jobs");
     return result;

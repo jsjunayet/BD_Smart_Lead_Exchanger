@@ -88,7 +88,7 @@ const changePassword = async (
   payload: { oldPassword: string; newPassword: string },
 ) => {
   // checking if the user is exist
-  console.log(userData);
+  console.log(userData, 'this si user');
   const user = await User.findOne({ email: userData.email });
 
   if (!user) {

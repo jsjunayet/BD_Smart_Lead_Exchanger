@@ -5,6 +5,7 @@ export interface IReport {
   submission: Types.ObjectId; // related JobSubmission
   reason: string; // why user reported
   status: 'pending' | 'resolved' | 'rejected'; // admin review status
+  adminNotes: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

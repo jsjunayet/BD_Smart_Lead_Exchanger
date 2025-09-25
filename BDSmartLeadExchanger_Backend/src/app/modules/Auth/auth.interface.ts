@@ -18,6 +18,7 @@ export interface IUser extends Document {
   password: string;
   role: string;
   image: string;
+  ProfileImage: string;
   surfingBalance: number;
   isApproved: boolean;
   isDeleted: boolean;

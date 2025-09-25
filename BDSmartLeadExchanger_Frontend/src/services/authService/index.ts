@@ -122,6 +122,30 @@ export const ForgetPassword = async (userData: FieldValues) => {
     return Error(error);
   }
 };
+
+export const ChangePassword = async (userData: FieldValues) => {
+  const token = (await cookies()).get("accessToken")?.value;
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API}/auth//change-password/changes`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      }
+    );
+
+    const result = await res.json();
+
+    return result;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return Error(error);
+  }
+};
 export const ResetPassword = async (userData: FieldValues, token: string) => {
   try {
     const res = await fetch(

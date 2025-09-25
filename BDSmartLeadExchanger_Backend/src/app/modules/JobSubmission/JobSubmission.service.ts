@@ -41,12 +41,63 @@ const reviewSubmission = async (
     const submission = await JobSubmission.findById(submissionId)
       .populate('job')
       .populate('user')
-      .session(session); // transaction-aware
+      .session(session);
 
     if (!submission) {
       throw new AppError(httpStatus.NOT_FOUND, 'Submission not found');
     }
 
+    const currentUser = await User.findById(ownerId).session(session);
+    const isAdmin =
+      currentUser?.role === 'admin' || currentUser?.role === 'superAdmin';
+
+    // Role-based validation
+    if (isAdmin) {
+      await handleAdminReview(submission, action, session);
+    } else {
+      await handleRegularUserReview(
+        submission,
+        currentUser,
+        ownerId,
+        action,
+        session,
+      );
+    }
+
+    await submission.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    return submission;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+
+  // Helper functions
+  async function handleAdminReview(submission, action, session) {
+    if (action.action === 'approve') {
+      submission.status = 'approved';
+      // Admin can approve without balance checks, still reward user
+      await User.findByIdAndUpdate(
+        submission.user,
+        { $inc: { surfingBalance: 1 } },
+        { session },
+      );
+    } else {
+      submission.status = 'rejected';
+    }
+  }
+
+  async function handleRegularUserReview(
+    submission,
+    currentUser,
+    ownerId,
+    action,
+    session,
+  ) {
+    // Ownership check
     if (submission.job.postedBy.toString() !== ownerId.toString()) {
       throw new AppError(
         httpStatus.FORBIDDEN,
@@ -54,24 +105,22 @@ const reviewSubmission = async (
       );
     }
 
-    const owner = await User.findById(ownerId).session(session);
-
-    if (!owner || owner.wallet <= 0) {
+    if (!currentUser || currentUser.wallet <= 0) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient balance');
     }
 
     if (action.action === 'approve') {
       submission.status = 'approved';
 
-      if (!owner || owner.surfingBalance <= 0) {
+      if (!currentUser || currentUser.surfingBalance <= 0) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
           'Insufficient surfingBalance balance',
         );
       }
-      console.log(owner);
-      owner.surfingBalance -= 1;
-      await owner.save({ session });
+
+      currentUser.surfingBalance -= 1;
+      await currentUser.save({ session });
 
       await User.findByIdAndUpdate(
         submission.user,
@@ -81,17 +130,6 @@ const reviewSubmission = async (
     } else {
       submission.status = 'rejected';
     }
-
-    await submission.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
-
-    return submission;
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    throw error; // rollback হলে error propagate করবে
   }
 };
 

@@ -1,26 +1,40 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getDashboardData } from "@/services/userService";
 import { Briefcase, CheckCircle, TrendingUp, Wallet } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Dashboard = () => {
-  const userStats = {
-    availableBalance: 1,
-    surfingBalance: 23,
-    completedJobs: 15,
-    pendingJobs: 3,
-    dailyDeduction: 0.5,
-  };
+  const [DashboardData, setDashboardData] = useState({});
 
-  const recentJobs = [
-    {
-      id: 1,
-      title: "Website Development",
-      client: "TechCorp Ltd",
-      status: "completed",
-      amount: 5000,
-      completedBy: 8,
-    },
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await getDashboardData();
+        console.log(response, "dashboard");
+        if (response?.success) {
+          setDashboardData(response.data);
+        } else {
+          console.error("Failed to fetch dashboard data");
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+  console.log(DashboardData, "dashboarddata");
+  // const recentJobs = [
+  //   {
+  //     id: 1,
+  //     title: "Website Development",
+  //     client: "TechCorp Ltd",
+  //     status: "completed",
+  //     amount: 5000,
+  //     completedBy: 8,
+  //   },
+  // ];
 
   // const getStatusColor = (status: string) => {
   //   switch (status) {
@@ -56,10 +70,10 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              ৳{userStats.availableBalance.toFixed(2)}
+              ${DashboardData.Balance || 0}
             </div>
             <p className="text-xs text-gray-600 mt-1">
-              Daily deduction: ৳{userStats.dailyDeduction}
+              Daily deduction: ${"0.5"}
             </p>
           </CardContent>
         </Card>
@@ -71,7 +85,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {recentJobs.length}
+              {DashboardData.myJobPostCount || 0}
             </div>
             <p className="text-xs text-gray-600 mt-1">Active job posts</p>
           </CardContent>
@@ -85,7 +99,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {userStats.surfingBalance}
+              {DashboardData.Surfing_Balance || 0}
             </div>
             <p className="text-xs text-gray-600 mt-1">
               Jobs completed successfully
@@ -93,7 +107,7 @@ const Dashboard = () => {
             {/* <div className="mt-2">
               <Badge variant="secondary" className="text-xs">
                 Next milestone:{" "}
-                {userStats.surfingBalance < 10 ? "10 jobs" : "22 jobs"}
+                {DashboardData.surfingBalance < 10 ? "10 jobs" : "22 jobs"}
               </Badge>
             </div> */}
           </CardContent>
@@ -107,7 +121,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-600">
-              {userStats.completedJobs}
+              {DashboardData.MySubmittedJobCount || 0}
             </div>
             <p className="text-xs text-gray-600 mt-1">Successfully finished</p>
           </CardContent>

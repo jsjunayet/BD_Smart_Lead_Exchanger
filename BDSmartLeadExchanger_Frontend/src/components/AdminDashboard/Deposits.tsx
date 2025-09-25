@@ -19,8 +19,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { Approveddeposit, getAlldeposit } from "@/services/depositService";
 import { Check, Eye, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface Deposit {
@@ -38,42 +39,23 @@ const DepositManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
   const [actionMessage, setActionMessage] = useState("");
+  const [AllDeposites, setAllDeposites] = useState([]);
 
-  const depositsData: Deposit[] = [
-    {
-      id: "DEP001",
-      user: "John Doe",
-      amount: 50,
-      transactionId: "TXN123456789",
-      bkashNumber: "01712345678",
-      status: "pending",
-      createdAt: "2024-01-15 10:30 AM",
-    },
-    {
-      id: "DEP002",
-      user: "Sarah Wilson",
-      amount: 100,
-      transactionId: "TXN987654321",
-      bkashNumber: "01798765432",
-      status: "approved",
-      message: "Payment verified successfully",
-      createdAt: "2024-01-15 09:15 AM",
-    },
-    {
-      id: "DEP003",
-      user: "Mike Johnson",
-      amount: 25,
-      transactionId: "TXN456789123",
-      bkashNumber: "01656789012",
-      status: "rejected",
-      message: "Invalid transaction ID",
-      createdAt: "2024-01-14 08:45 PM",
-    },
-  ];
-
-  const filteredDeposits = depositsData.filter(
+  const fetchDeposit = async () => {
+    try {
+      const res = await getAlldeposit();
+      console.log(res); // calls the API route above
+      setAllDeposites(res.data);
+    } catch (error) {
+      console.error("Failed to fetch users", error);
+    }
+  };
+  useEffect(() => {
+    fetchDeposit();
+  }, []);
+  const filteredDeposits = AllDeposites?.filter(
     (deposit) =>
-      deposit.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deposit.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       deposit.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       deposit.bkashNumber.includes(searchTerm)
   );
@@ -95,13 +77,24 @@ const DepositManagement = () => {
     }
   };
 
-  const handleStatusUpdate = (
+  const handleStatusUpdate = async (
     depositId: string,
     status: "approved" | "rejected"
   ) => {
-    toast.success(`Deposit ${status} successfully`);
-    setActionMessage("");
-    setSelectedDeposit(null);
+    console.log(depositId, status, actionMessage);
+    const res = await Approveddeposit(depositId, {
+      status,
+      message: actionMessage,
+    });
+    console.log(res);
+    if (res.success) {
+      toast.success(`Deposit has been ${status}`);
+      fetchDeposit();
+      setSelectedDeposit(null);
+      setActionMessage("");
+    } else {
+      toast.error(res.message || "Failed to update deposit status");
+    }
   };
 
   return (
@@ -132,13 +125,12 @@ const DepositManagement = () => {
       {/* Deposits Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Deposits ({filteredDeposits.length})</CardTitle>
+          <CardTitle>All Deposits ({filteredDeposits?.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Deposit ID</TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Transaction ID</TableHead>
@@ -149,11 +141,11 @@ const DepositManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDeposits.map((deposit) => (
+              {filteredDeposits?.map((deposit) => (
                 <TableRow key={deposit.id}>
-                  <TableCell className="font-medium">{deposit.id}</TableCell>
-                  <TableCell>{deposit.user}</TableCell>
-                  <TableCell>${deposit.amount}</TableCell>
+                  <TableCell>{deposit?.user?.name}</TableCell>
+                  <TableCell>৳ {deposit.amount}</TableCell>
+
                   <TableCell>{deposit.transactionId}</TableCell>
                   <TableCell>{deposit.bkashNumber}</TableCell>
                   <TableCell>{getStatusBadge(deposit.status)}</TableCell>
@@ -173,7 +165,7 @@ const DepositManagement = () => {
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>
-                              Deposit Details - {deposit.id}
+                              Deposit Details - {deposit._id}
                             </DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
@@ -183,7 +175,7 @@ const DepositManagement = () => {
                                   User
                                 </label>
                                 <p className="text-sm text-muted-foreground">
-                                  {deposit.user}
+                                  {deposit.user.name}
                                 </p>
                               </div>
                               <div>
@@ -224,7 +216,10 @@ const DepositManagement = () => {
                                 <div className="flex space-x-2">
                                   <Button
                                     onClick={() =>
-                                      handleStatusUpdate(deposit.id, "approved")
+                                      handleStatusUpdate(
+                                        deposit._id,
+                                        "approved"
+                                      )
                                     }
                                     className="bg-green-500 hover:bg-green-600"
                                   >
@@ -233,7 +228,10 @@ const DepositManagement = () => {
                                   </Button>
                                   <Button
                                     onClick={() =>
-                                      handleStatusUpdate(deposit.id, "rejected")
+                                      handleStatusUpdate(
+                                        deposit._id,
+                                        "rejected"
+                                      )
                                     }
                                     variant="destructive"
                                   >

@@ -28,7 +28,7 @@ router.get(
 
 // user own reports
 router.get(
-  '/my/reports',
+  '/my/reports/:id',
   auth('user', 'admin', 'superAdmin'),
   ReportController.getMyReports,
 );

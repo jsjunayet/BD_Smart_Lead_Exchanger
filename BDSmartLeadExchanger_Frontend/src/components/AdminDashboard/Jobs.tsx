@@ -1,7 +1,7 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ScreenshotViewer } from "@/components/ui/screenshot-viewer";
 import {
   Table,
   TableBody,
@@ -18,12 +19,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, Eye, Search, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { ApprovedOrRejectJobs, getAlljobs } from "@/services/jobService";
+import { ApprovedOrRejectSubmission } from "@/services/JobSubmission";
+import {
+  Calendar,
+  Check,
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  Eye,
+  Search,
+  Users,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-interface Job {
-  id: string;
+interface Submission {
+  _id: string;
+  job: string;
+  user: string;
+  proofScreenshots: string[];
+  status: "submitted" | "approved" | "rejected";
+  submittedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface MyJobItem {
+  _id: string;
   title: string;
   description: string;
   jobUrl: string;
@@ -31,111 +56,250 @@ interface Job {
   thumbnail: string;
   postedBy: string;
   approvedByAdmin: boolean;
-  status: "pending" | "approved" | "rejected";
-  payment: number;
   createdAt: string;
+  updatedAt: string;
+  submissions: Submission[];
 }
 
-const JobManagement = () => {
+const MyJobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [searchTerm2, setSearchTerm2] = useState("");
 
-  const jobsData: Job[] = [
-    {
-      id: "JOB001",
-      title: "Social Media Marketing Campaign",
-      description:
-        "Create and manage social media posts for our brand awareness campaign",
-      jobUrl: "https://example.com/campaign",
-      screenshotTitles: [
-        "Homepage Screenshot",
-        "Campaign Results",
-        "Analytics Dashboard",
-      ],
-      thumbnail: "/placeholder.svg",
-      postedBy: "John Doe",
-      approvedByAdmin: false,
-      status: "pending",
-      payment: 50,
-      createdAt: "2024-01-15 10:30 AM",
-    },
-    {
-      id: "JOB002",
-      title: "Website Testing & Bug Report",
-      description: "Test our new website and provide detailed bug reports",
-      jobUrl: "https://example.com/testing",
-      screenshotTitles: ["Bug Screenshots", "Test Results"],
-      thumbnail: "/placeholder.svg",
-      postedBy: "Sarah Wilson",
-      approvedByAdmin: true,
-      status: "approved",
-      payment: 75,
-      createdAt: "2024-01-15 09:15 AM",
-    },
-    {
-      id: "JOB003",
-      title: "Content Writing Project",
-      description: "Write engaging blog posts about technology trends",
-      jobUrl: "https://example.com/content",
-      screenshotTitles: ["Article Draft", "Published Content"],
-      thumbnail: "/placeholder.svg",
-      postedBy: "Mike Johnson",
-      approvedByAdmin: false,
-      status: "rejected",
-      payment: 100,
-      createdAt: "2024-01-14 08:45 PM",
-    },
-  ];
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [myJobsData, setMyJobsData] = useState<MyJobItem[]>([]);
+  // --- Add this state at top level ---
+  const [submissions, setSubmissions] = useState<{ [key: string]: number }>({});
 
-  const filteredJobs = jobsData.filter(
-    (job) =>
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.postedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // --- Replace your interval useEffect with this ---
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSubmissions((prev) => {
+        const updated: { [key: string]: number } = {};
+        myJobsData.forEach((job) => {
+          job.submissions.forEach((sub) => {
+            if (sub.status === "submitted") {
+              const submittedTime = new Date(sub.submittedAt).getTime();
+              const deadline = submittedTime + 2 * 60 * 60 * 1000; // 2 hours
+              const remaining = Math.floor((deadline - Date.now()) / 1000);
 
-  const getStatusBadge = (status: string) => {
+              if (remaining <= 0) {
+                // Auto approve if time is over
+                sub.status = "approved";
+                toast.success(`Submission ${sub._id.slice(-8)} auto-approved!`);
+              } else {
+                updated[sub._id] = remaining;
+              }
+            }
+          });
+        });
+        return updated;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [myJobsData]);
+
+  // --- Helper to format time ---
+  const formatCountdown = (sec: number) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return `${h > 0 ? `${h}h ` : ""}${m.toString().padStart(2, "0")}m ${s
+      .toString()
+      .padStart(2, "0")}s`;
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const fetchData = async () => {
+    const response = await getAlljobs();
+    console.log(response);
+    setMyJobsData(response.data || []);
+  };
+
+  // Function to get badge color based on submission status
+  const getSubmissionStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
         return (
-          <Badge className="bg-green-500 hover:bg-green-600">Approved</Badge>
+          <Badge className="bg-success text-success-foreground">Approved</Badge>
         );
       case "rejected":
-        return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>;
-      case "pending":
         return (
-          <Badge className="bg-orange-500 hover:bg-orange-600">Pending</Badge>
+          <Badge className="bg-destructive text-destructive-foreground">
+            Rejected
+          </Badge>
+        );
+      case "submitted":
+        return (
+          <Badge className="bg-warning text-warning-foreground">
+            Submitted
+          </Badge>
         );
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  const handleJobAction = (
-    jobId: string,
-    action: "approve" | "reject" | "delete"
-  ) => {
-    toast.success(`Job ${action}d successfully`);
-    setSelectedJob(null);
+  const getJobStatusBadge = (approvedByAdmin: boolean) => {
+    return approvedByAdmin ? (
+      <Badge className="bg-success text-success-foreground">Approved</Badge>
+    ) : (
+      <Badge className="bg-warning text-warning-foreground">Pending</Badge>
+    );
   };
 
+  const handleSubmissionAction = async (
+    submissionId: string,
+    action: "approve" | "reject"
+  ) => {
+    const res = await ApprovedOrRejectSubmission(submissionId, action);
+    if (res.success) {
+      toast.success(`${res.message}`);
+      fetchData();
+    } else {
+      toast.success(`${res.message}`);
+    }
+  };
+  const handleJobAction = async (
+    jobId: string,
+    action: "approve" | "reject"
+  ) => {
+    const res = await ApprovedOrRejectJobs(jobId, action);
+    if (res.success) {
+      toast.success(`${res.message}`);
+      fetchData();
+      fetchData();
+    } else {
+      toast.success(`${res.message}`);
+    }
+  };
+  const getSubmissionStats = (submissions: Submission[]) => {
+    const total = submissions.length;
+    const approved = submissions.filter((s) => s.status === "approved").length;
+    const submitted = submissions.filter(
+      (s) => s.status === "submitted"
+    ).length;
+    const rejected = submissions.filter((s) => s.status === "rejected").length;
+    return { total, approved, submitted, rejected };
+  };
+
+  const filteredData = myJobsData.filter((item) => {
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.postedBy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.postedBy.email.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+  // NEW FUNCTION: Filters submissions by user name or email
+  const getFilteredSubmissions = (job: MyJobItem) => {
+    if (!searchTerm2.trim()) {
+      return job.submissions; // Return all if no search term
+    }
+
+    return job.submissions.filter((submission) => {
+      const searchLower = searchTerm2.toLowerCase();
+      return (
+        submission.user.name.toLowerCase().includes(searchLower) ||
+        submission.user.email.toLowerCase().includes(searchLower)
+      );
+    });
+  };
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Job Management</h1>
-        <Badge variant="outline">Admin Panel</Badge>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            My Jobs
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your posted jobs and track progress
+          </p>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Eye className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Jobs</p>
+                <p className="font-semibold">{myJobsData.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-success/10 rounded-lg">
+                <CheckCircle className="h-4 w-4 text-success" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Approved Jobs</p>
+                <p className="font-semibold">
+                  {myJobsData.filter((job) => job.approvedByAdmin).length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-info/10 rounded-lg">
+                <Users className="h-4 w-4 text-info" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Total Submissions
+                </p>
+                <p className="font-semibold">
+                  {myJobsData.reduce(
+                    (acc, job) => acc + job.submissions.length,
+                    0
+                  )}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <Clock className="h-4 w-4 text-warning" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Pending Reviews</p>
+                <p className="font-semibold">
+                  {myJobsData.reduce(
+                    (acc, job) =>
+                      acc +
+                      job.submissions.filter((s) => s.status === "submitted")
+                        .length,
+                    0
+                  )}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Search */}
       <Card>
-        <CardHeader>
-          <CardTitle>Search Jobs</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search by title, description, or posted by..."
+              placeholder="Search jobs, Creator Email, Creator Name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -144,170 +308,252 @@ const JobManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Jobs Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Jobs ({filteredJobs.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Job ID</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Posted By</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredJobs.map((job) => (
-                <TableRow key={job.id}>
-                  <TableCell className="font-medium">{job.id}</TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{job.title}</p>
-                      <p className="text-sm text-muted-foreground truncate max-w-[200px]">
-                        {job.description}
+      {/* Jobs List */}
+      <div className="space-y-4">
+        {filteredData.map((job) => {
+          const filteredSubmissions = getFilteredSubmissions(job);
+          const stats = getSubmissionStats(filteredSubmissions);
+          const isExpanded = expandedJob === job._id;
+
+          return (
+            <Card key={job._id} className="overflow-hidden">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-lg font-semibold">{job.title}</h3>
+                      {getJobStatusBadge(job.approvedByAdmin)}
+                    </div>
+                    <p className="text-muted-foreground">
+                      {job.postedBy.name}, {job.postedBy.email}
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                      <div className="flex items-center space-x-1">
+                        <ExternalLink className="h-3 w-3" />
+                        <Link
+                          href={`${job.jobUrl}`}
+                          className="truncate max-w-[300px] cursor-pointer"
+                        >
+                          {job.jobUrl}
+                        </Link>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {new Date(job.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm">
+                      <span>Total: {stats.total}</span>
+                      <span className="text-success">✓ {stats.approved}</span>
+                      <span className="text-warning">⏳ {stats.submitted}</span>
+                      <span className="text-destructive">
+                        ✗ {stats.rejected}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    {!job.approvedByAdmin && (
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleJobAction(job._id, "approve")}
+                          className="bg-primary hover:bg-primary/80"
+                        >
+                          <Check className="h-3 w-3 mr-1" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleJobAction(job._id, "reject")}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setExpandedJob(isExpanded ? null : job._id)
+                      }
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {isExpanded ? "Hide" : "View"} Submissions
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+
+              {isExpanded && (
+                <CardContent className="pt-0">
+                  <div className="border-t pt-4">
+                    <div className="flex justify-between">
+                      <h4 className="font-medium mb-4">
+                        Submissions ({stats.total})
+                      </h4>
+
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                        <Input
+                          placeholder="Search Submission Email, Submission Name..."
+                          value={searchTerm2}
+                          onChange={(e) => setSearchTerm2(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+
+                    {filteredSubmissions.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Submission ID</TableHead>
+                              <TableHead>Submitter</TableHead>
+                              <TableHead>Email</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Remaining Time</TableHead> {/* NEW */}
+                              <TableHead>Proof Screenshots</TableHead>
+                              <TableHead>Submitted At</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+
+                          <TableBody>
+                            {filteredSubmissions.map((submission) => (
+                              <TableRow key={submission._id}>
+                                <TableCell className="font-mono text-sm">
+                                  {submission._id}
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  {submission.user.name} {/* Show user name */}
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                  {submission.user.email}{" "}
+                                  {/* Show user email */}
+                                </TableCell>
+                                <TableCell>
+                                  {getSubmissionStatusBadge(submission.status)}
+                                </TableCell>
+
+                                {/* Countdown Timer */}
+                                <TableCell className="text-sm">
+                                  {submission.status === "submitted"
+                                    ? submissions[submission._id] !== undefined
+                                      ? formatCountdown(
+                                          submissions[submission._id]
+                                        )
+                                      : "Auto Approved"
+                                    : "--"}
+                                </TableCell>
+
+                                <TableCell>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-sm">
+                                      {submission.proofScreenshots.length} files
+                                    </span>
+                                    {submission.proofScreenshots.length > 0 && (
+                                      <Dialog>
+                                        <DialogTrigger asChild>
+                                          <Button variant="outline" size="sm">
+                                            <Eye className="h-3 w-3" />
+                                          </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-6xl max-h-screen">
+                                          <DialogHeader>
+                                            <DialogTitle>
+                                              Professional Screenshots
+                                            </DialogTitle>
+                                          </DialogHeader>
+                                          <ScreenshotViewer
+                                            screenshots={
+                                              submission.proofScreenshots
+                                            }
+                                            titles={job.screenshotTitles}
+                                            professionalName={
+                                              submission.user.email
+                                            }
+                                            professionalImage="/placeholder.svg"
+                                            maxPreview={4}
+                                          />
+                                        </DialogContent>
+                                      </Dialog>
+                                    )}
+                                  </div>
+                                </TableCell>
+
+                                <TableCell>
+                                  <div className="text-sm">
+                                    {new Date(
+                                      submission.submittedAt
+                                    ).toLocaleString()}
+                                  </div>
+                                </TableCell>
+
+                                <TableCell>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleSubmissionAction(
+                                          submission._id,
+                                          "approve"
+                                        )
+                                      }
+                                      className="bg-primary hover:bg-primary/80"
+                                    >
+                                      <Check className="h-3 w-3 mr-1" />
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() =>
+                                        handleSubmissionAction(
+                                          submission._id,
+                                          "reject"
+                                        )
+                                      }
+                                    >
+                                      <X className="h-3 w-3 mr-1" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-center py-4">
+                        No submissions yet
                       </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{job.postedBy}</TableCell>
-                  <TableCell>${job.payment}</TableCell>
-                  <TableCell>{getStatusBadge(job.status)}</TableCell>
-                  <TableCell>{job.createdAt}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedJob(job)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Job Details - {job.id}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-sm font-medium">
-                                  Title
-                                </label>
-                                <p className="text-sm text-muted-foreground">
-                                  {job.title}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="text-sm font-medium">
-                                  Posted By
-                                </label>
-                                <p className="text-sm text-muted-foreground">
-                                  {job.postedBy}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="text-sm font-medium">
-                                  Payment
-                                </label>
-                                <p className="text-sm text-muted-foreground">
-                                  ${job.payment}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="text-sm font-medium">
-                                  Status
-                                </label>
-                                <div className="mt-1">
-                                  {getStatusBadge(job.status)}
-                                </div>
-                              </div>
-                            </div>
+                    )}
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          );
+        })}
+      </div>
 
-                            <div>
-                              <label className="text-sm font-medium">
-                                Description
-                              </label>
-                              <p className="text-sm text-muted-foreground bg-muted p-3 rounded mt-1">
-                                {job.description}
-                              </p>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium">
-                                Job URL
-                              </label>
-                              <p className="text-sm text-muted-foreground">
-                                {job.jobUrl}
-                              </p>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium">
-                                Screenshot Requirements
-                              </label>
-                              <ul className="text-sm text-muted-foreground mt-1 space-y-1">
-                                {job.screenshotTitles.map((title, index) => (
-                                  <li key={index} className="flex items-center">
-                                    <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-                                    {title}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            <div className="flex space-x-2 pt-4">
-                              {job.status === "pending" && (
-                                <>
-                                  <Button
-                                    onClick={() =>
-                                      handleJobAction(job.id, "approve")
-                                    }
-                                    className="bg-green-500 hover:bg-green-600"
-                                  >
-                                    <Check className="h-4 w-4 mr-2" />
-                                    Approve
-                                  </Button>
-                                  <Button
-                                    onClick={() =>
-                                      handleJobAction(job.id, "reject")
-                                    }
-                                    variant="destructive"
-                                  >
-                                    <X className="h-4 w-4 mr-2" />
-                                    Reject
-                                  </Button>
-                                </>
-                              )}
-                              <Button
-                                onClick={() =>
-                                  handleJobAction(job.id, "delete")
-                                }
-                                variant="destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {filteredData.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground">
+              No jobs found matching your search.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
 
-export default JobManagement;
+export default MyJobs;

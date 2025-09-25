@@ -39,6 +39,7 @@ const signUpUser = catchAsync(async (req, res) => {
 
 const changePassword = catchAsync(async (req, res) => {
   const { ...passwordData } = req.body;
+  console.log(passwordData, req.user, 'this idata is importand');
 
   const result = await AuthServices.changePassword(req.user, passwordData);
   sendResponse(res, {

@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { ChangePassword, logout } from "@/services/authService";
+import { getSingleuser, UpdateProfile } from "@/services/userService";
 import {
   Building,
   Camera,
@@ -23,64 +25,109 @@ import {
   Eye,
   EyeOff,
   Hash,
-  Mail,
+  Loader2,
   MapPin,
   Phone,
   Save,
   User,
 } from "lucide-react";
-import { useRef, useState } from "react";
-import { mockUsers } from "../share/mockData";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 export default function AdminProfile() {
-  const [admin, setAdmin] = useState(
-    mockUsers.find((user) => user.role === "admin")!
-  );
+  const [admin, setAdmin] = useState();
+  const [loading, setisloading] = useState();
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: admin.name,
-    userName: admin.userName,
-    email: admin.email,
-    phoneNumber: admin.phoneNumber,
-    country: admin.country,
-    city: admin.city,
-    affiliateNetworkName: admin.affiliateNetworkName,
-    publisherId: admin.publisherId,
+    name: "",
+    phoneNumber: "",
+    country: "",
+    city: "",
+    affiliateNetworkName: "",
+    publisherId: "",
   });
+  useEffect(() => {
+    if (admin) {
+      setEditForm({
+        name: admin.name || "",
+        phoneNumber: admin.phoneNumber || "",
+        country: admin.country || "",
+        city: admin.city || "",
+        affiliateNetworkName: admin.affiliateNetworkName || "",
+        publisherId: admin.publisherId || "",
+      });
+
+      setProfileImage(admin.ProfileImage);
+    }
+  }, [admin]);
+
   const [passwords, setPasswords] = useState({
-    current: "",
-    new: "",
+    oldPassword: "",
+    newPassword: "",
     confirm: "",
   });
-  const [profileImage, setProfileImage] = useState(admin.image);
+  const [profileImage, setProfileImage] = useState(admin?.ProfileImage);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePasswordChange = () => {
-    if (passwords.new !== passwords.confirm) {
+  const handlePasswordChange = async () => {
+    if (passwords.newPassword !== passwords.confirm) {
+      toast.info("Password don't Match");
       return;
     }
-
-    setPasswords({ current: "", new: "", confirm: "" });
+    setisloading(true);
+    const res = await ChangePassword(passwords);
+    if (res.success) {
+      setisloading(false);
+      router.push("/login");
+      logout();
+      toast.success("Successfull Password  Change");
+      setPasswords({ oldPassword: "", newPassword: "", confirm: "" });
+    } else {
+      toast.error(`${res.message}`);
+      setisloading(false);
+    }
   };
+  const handleProfileUpdate = async () => {
+    const formData = new FormData();
 
-  const handleProfileUpdate = () => {
-    setAdmin({
-      ...admin,
-      ...editForm,
-      image: profileImage,
-    });
-    setIsEditing(false);
+    // Always append data
+    console.log(editForm);
+    formData.append("data", JSON.stringify(editForm));
+
+    // Append file only if user selected one
+    if (profileImage instanceof File) {
+      formData.append("file", profileImage);
+    }
+
+    try {
+      setisloading(true);
+      const res = await UpdateProfile(formData);
+      console.log(res);
+
+      if (res.success) {
+        setAdmin({ ...admin, ...editForm, ProfileImage: res.ProfileImageUrl });
+        setProfileImage(res.ProfileImageUrl);
+        setIsEditing(false);
+        setisloading(false);
+        toast.success(`${res.message}`);
+      } else {
+        setisloading(false);
+        toast.error(`${res.message}`);
+      }
+    } catch (err) {
+      setisloading(false);
+      console.error(err);
+      toast.error(`${err.message}`);
+    }
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      setProfileImage(file); // store File
     }
   };
 
@@ -101,7 +148,14 @@ export default function AdminProfile() {
     }
     setIsEditing(!isEditing);
   };
-
+  const fetchOWnerData = async () => {
+    const data = await getSingleuser();
+    console.log(data, "data");
+    setAdmin(data?.data);
+  };
+  useEffect(() => {
+    fetchOWnerData();
+  }, []);
   return (
     <div className="space-y-8 max-w-full ">
       <div>
@@ -120,14 +174,21 @@ export default function AdminProfile() {
             <div className="flex flex-col items-center text-center">
               <div className="relative group">
                 <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={profileImage} alt={admin.name} />
+                  <AvatarImage
+                    src={
+                      profileImage instanceof File
+                        ? URL.createObjectURL(profileImage)
+                        : profileImage
+                    }
+                    alt={admin?.name}
+                  />
                   <AvatarFallback className="text-xl">
-                    {admin.name.charAt(0)}
+                    {admin?.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => fileInputRef.oldPassword?.click()}
                     className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Camera className="h-6 w-6 text-white" />
@@ -143,10 +204,10 @@ export default function AdminProfile() {
               </div>
 
               <h2 className="text-xl font-semibold text-foreground mb-1">
-                {admin.name}
+                {admin?.name}
               </h2>
               <p className="text-sm text-muted-foreground mb-3">
-                @{admin.userName}
+                @{admin?.userName}
               </p>
 
               <Badge className="bg-warning text-warning-foreground mb-4">
@@ -160,7 +221,7 @@ export default function AdminProfile() {
                     Wallet Balance
                   </span>
                   <span className="font-semibold text-foreground">
-                    ${admin.wallet}
+                    ${admin?.wallet}
                   </span>
                 </div>
 
@@ -169,7 +230,7 @@ export default function AdminProfile() {
                     Surfing Balance
                   </span>
                   <span className="font-semibold text-foreground">
-                    {admin.surfingBalance}
+                    {admin?.surfingBalance}
                   </span>
                 </div>
               </div>
@@ -216,7 +277,7 @@ export default function AdminProfile() {
                 <Label htmlFor="name">Full Name</Label>
                 <Input
                   id="name"
-                  value={isEditing ? editForm.name : admin.name}
+                  value={isEditing ? editForm.name : admin?.name}
                   onChange={(e) =>
                     isEditing &&
                     setEditForm({ ...editForm, name: e.target.value })
@@ -226,42 +287,14 @@ export default function AdminProfile() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={isEditing ? editForm.userName : admin.userName}
-                  onChange={(e) =>
-                    isEditing &&
-                    setEditForm({ ...editForm, userName: e.target.value })
-                  }
-                  disabled={!isEditing}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    value={isEditing ? editForm.email : admin.email}
-                    onChange={(e) =>
-                      isEditing &&
-                      setEditForm({ ...editForm, email: e.target.value })
-                    }
-                    className="pl-10"
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="phone"
-                    value={isEditing ? editForm.phoneNumber : admin.phoneNumber}
+                    value={
+                      isEditing ? editForm.phoneNumber : admin?.phoneNumber
+                    }
                     onChange={(e) =>
                       isEditing &&
                       setEditForm({ ...editForm, phoneNumber: e.target.value })
@@ -278,7 +311,7 @@ export default function AdminProfile() {
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="country"
-                    value={isEditing ? editForm.country : admin.country}
+                    value={isEditing ? editForm.country : admin?.country}
                     onChange={(e) =>
                       isEditing &&
                       setEditForm({ ...editForm, country: e.target.value })
@@ -293,7 +326,7 @@ export default function AdminProfile() {
                 <Label htmlFor="city">City</Label>
                 <Input
                   id="city"
-                  value={isEditing ? editForm.city : admin.city}
+                  value={isEditing ? editForm.city : admin?.city}
                   onChange={(e) =>
                     isEditing &&
                     setEditForm({ ...editForm, city: e.target.value })
@@ -311,7 +344,7 @@ export default function AdminProfile() {
                     value={
                       isEditing
                         ? editForm.affiliateNetworkName
-                        : admin.affiliateNetworkName
+                        : admin?.affiliateNetworkName
                     }
                     onChange={(e) =>
                       isEditing &&
@@ -332,7 +365,9 @@ export default function AdminProfile() {
                   <Hash className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="publisher"
-                    value={isEditing ? editForm.publisherId : admin.publisherId}
+                    value={
+                      isEditing ? editForm.publisherId : admin?.publisherId
+                    }
                     onChange={(e) =>
                       isEditing &&
                       setEditForm({ ...editForm, publisherId: e.target.value })
@@ -356,7 +391,14 @@ export default function AdminProfile() {
                     className="bg-primary hover:bg-primary/90 gap-2"
                   >
                     <Save className="h-4 w-4" />
-                    Save Changes
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Save Changing...
+                      </>
+                    ) : (
+                      " Save Changes"
+                    )}
                   </Button>
                 </div>
               </>
@@ -388,21 +430,21 @@ export default function AdminProfile() {
                   <DialogHeader>
                     <DialogTitle>Change Password</DialogTitle>
                     <DialogDescription>
-                      Enter your current password and choose a new one.
+                      Enter your oldPassword password and choose a new one.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="current-password">Current Password</Label>
+                      <Label htmlFor="oldPassword-password">Old Password</Label>
                       <div className="relative">
                         <Input
-                          id="current-password"
+                          id="oldPassword-password"
                           type={showPassword ? "text" : "password"}
-                          value={passwords.current}
+                          value={passwords.oldPassword}
                           onChange={(e) =>
                             setPasswords({
                               ...passwords,
-                              current: e.target.value,
+                              oldPassword: e.target.value,
                             })
                           }
                         />
@@ -427,9 +469,12 @@ export default function AdminProfile() {
                       <Input
                         id="new-password"
                         type={showPassword ? "text" : "password"}
-                        value={passwords.new}
+                        value={passwords.newPassword}
                         onChange={(e) =>
-                          setPasswords({ ...passwords, new: e.target.value })
+                          setPasswords({
+                            ...passwords,
+                            newPassword: e.target.value,
+                          })
                         }
                       />
                     </div>
@@ -454,7 +499,14 @@ export default function AdminProfile() {
                   <DialogFooter>
                     <Button variant="outline">Cancel</Button>
                     <Button onClick={handlePasswordChange}>
-                      Update Password
+                      {loading ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          Update Password...
+                        </>
+                      ) : (
+                        "  Update Password"
+                      )}
                     </Button>
                   </DialogFooter>
                 </DialogContent>

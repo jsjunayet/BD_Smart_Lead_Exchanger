@@ -62,8 +62,7 @@ const approveOrrejectJob = async (
   if (!job) {
     throw new AppError(httpStatus.NOT_FOUND, 'Job not found');
   }
-
-  if (action.action === 'approve') {
+  if (action === 'approve') {
     job.approvedByAdmin = true;
   } else {
     job.approvedByAdmin = false;
@@ -120,7 +119,14 @@ const updateJob = async (
   jobId: string,
   userId: string,
   data: Partial<IJob>,
+  file,
 ) => {
+  if (file) {
+    const imageName = `${data.title}${data?.description}`;
+    const path = file?.path;
+    const { secure_url } = await sendImageToCloudinary(imageName, path);
+    data.thumbnail = secure_url as string;
+  }
   const job = await Job.findOne({ _id: jobId, postedBy: userId });
   if (!job) {
     throw new AppError(
@@ -128,6 +134,7 @@ const updateJob = async (
       'Job not found or permission denied',
     );
   }
+  data.approvedByAdmin = false;
   const result = await Job.findByIdAndUpdate(jobId, data, {
     new: true,
     runValidators: true,
@@ -155,7 +162,6 @@ const updateJob = async (
 const getWorkplaceJobs = async (userId: string) => {
   const completedJobs = await JobSubmission.find({
     user: userId,
-    status: 'submitted',
     submittedAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
   }).distinct('job');
   console.log(completedJobs);

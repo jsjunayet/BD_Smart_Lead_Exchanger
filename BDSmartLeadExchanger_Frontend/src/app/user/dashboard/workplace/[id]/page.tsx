@@ -1,10 +1,10 @@
 import SinglePage from "@/components/JobDetials/JobDetails";
 
-const WorkplaceDetialPage = ({ params }) => {
-  console.log(params);
+const WorkplaceDetialPage = async ({ params }) => {
+  const resolvedParams = await params;
   return (
     <div>
-      <SinglePage jobId={params.id} />
+      <SinglePage jobId={resolvedParams.id} />
     </div>
   );
 };

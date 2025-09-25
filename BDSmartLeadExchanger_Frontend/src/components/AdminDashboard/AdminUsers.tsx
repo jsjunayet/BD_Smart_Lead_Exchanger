@@ -28,7 +28,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { getAlluser } from "@/services/userService";
+import {
+  Approveduser,
+  deleteduser,
+  getAlluser,
+  userRoleUpate,
+} from "@/services/userService";
 import { User } from "@/types";
 import {
   Check,
@@ -48,22 +53,22 @@ import { SearchInput } from "../share/SearchInput";
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const fetchUsers = async () => {
+    try {
+      const res = await getAlluser();
+      console.log(res); // calls the API route above
+      setUsers(res.data);
+    } catch (error) {
+      console.error("Failed to fetch users", error);
+    }
+  };
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await getAlluser();
-        console.log(res); // calls the API route above
-        setUsers(res.data);
-      } catch (error) {
-        console.error("Failed to fetch users", error);
-      }
-    };
     fetchUsers();
   }, []);
   console.log(users);
@@ -103,25 +108,27 @@ export default function AdminUsers() {
     return { totalUsers, activeUsers, pendingUsers, adminUsers };
   }, [users]);
 
-  const handleRoleChange = (userId: string, newRole: "admin" | "user") => {
-    setUsers(
-      users.map((user) =>
-        user._id === userId ? { ...user, role: newRole } : user
-      )
-    );
-    toast({
-      title: "Role Updated",
-      description: `User role has been updated to ${newRole}`,
-    });
+  const handleRoleChange = async (
+    userId: string,
+    newRole: "admin" | "user"
+  ) => {
+    console.log(userId, newRole);
+    const res = await userRoleUpate(userId, { newRole });
+    console.log(res);
+    fetchUsers();
+    toast.success(`User role has been updated to ${newRole}`);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    setUsers(users.filter((user) => user._id !== userId));
-    toast({
-      title: "User Deleted",
-      description: "User has been successfully deleted",
-      variant: "destructive",
-    });
+  const handleDeleteUser = async (userId: string) => {
+    const res = await deleteduser(userId);
+    console.log(res, "deleted");
+    if (res.success) {
+      toast.success("User deleted successfully");
+      setIsModalOpen(false);
+      fetchUsers();
+    } else {
+      toast.error("Failed to delete user");
+    }
   };
 
   const getStatusBadge = (user: User) => {
@@ -129,7 +136,20 @@ export default function AdminUsers() {
     if (!user.status) return <Badge variant="destructive">Inactive</Badge>;
     return <Badge className="bg-success text-success-foreground">Active</Badge>;
   };
-
+  const handleStatusUpdate = async (
+    userId: string,
+    action: "approved" | "rejected"
+  ) => {
+    console.log(`User ID: ${userId}, Action: ${action}`);
+    const res = await Approveduser(userId, action);
+    console.log(res, "approved");
+    if (res.success) {
+      toast.success(`User has been ${action}`);
+      fetchUsers();
+    } else {
+      toast.error(`Failed to ${action} user`);
+    }
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -459,7 +479,7 @@ export default function AdminUsers() {
                                   <div className="flex space-x-2">
                                     <Button
                                       onClick={() =>
-                                        handleStatusUpdate(user.id, "approved")
+                                        handleStatusUpdate(user._id, "approved")
                                       }
                                       className="bg-green-500 hover:bg-green-600"
                                     >
@@ -468,7 +488,7 @@ export default function AdminUsers() {
                                     </Button>
                                     <Button
                                       onClick={() =>
-                                        handleStatusUpdate(user.id, "rejected")
+                                        handleStatusUpdate(user._id, "rejected")
                                       }
                                       variant="destructive"
                                     >
@@ -486,7 +506,7 @@ export default function AdminUsers() {
                           )}
                         </DialogContent>
                       </Dialog>
-                      <Dialog>
+                      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                         <DialogTrigger asChild>
                           <Button
                             variant="ghost"
@@ -507,7 +527,12 @@ export default function AdminUsers() {
                             </DialogDescription>
                           </DialogHeader>
                           <DialogFooter>
-                            <Button variant="outline">Cancel</Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsModalOpen(false)}
+                            >
+                              Cancel
+                            </Button>
                             <Button
                               variant="destructive"
                               onClick={() => handleDeleteUser(user._id)}

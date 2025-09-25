@@ -4,9 +4,14 @@ import { cookies } from "next/headers";
 
 //  get all posts
 export const getAllReportService = async () => {
+  const token = (await cookies()).get("accessToken")!.value;
+
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/reports`, {
       method: "GET",
+      headers: {
+        Authorization: `${token}`,
+      },
       next: {
         tags: ["ReportService"],
       },
@@ -28,7 +33,7 @@ export const createReportService = async (formdata): Promise<any> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/reports`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(formdata),
@@ -50,7 +55,7 @@ export const UpdateReportService = async (id: string, data): Promise<any> => {
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
@@ -66,16 +71,16 @@ export const UpdateReportService = async (id: string, data): Promise<any> => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const OwnReportService = async (): Promise<any> => {
+export const OwnReportService = async (id: string): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API}/reports/my/reports`,
+      `${process.env.NEXT_PUBLIC_BASE_API}/reports/my/reports/${id}`,
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `${token}`,
           "Content-Type": "application/json",
         },
       }

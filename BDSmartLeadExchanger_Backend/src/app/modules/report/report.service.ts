@@ -13,14 +13,25 @@ const createReport = async (userId: string, body) => {
 };
 
 const getAllReports = async () => {
-  const result = await Report.find().populate('user submission');
+  const result = await Report.find()
+    .populate('user')
+    .populate({
+      path: 'submission',
+      populate: {
+        path: 'job', // submission এর ভিতরের job field
+        populate: {
+          path: 'postedBy', // this is the extra nested population
+        },
+      },
+    });
+
   return result;
 };
 
-const updateReportStatus = async (reportId: string, status: string) => {
+const updateReportStatus = async (reportId: string, payload) => {
   const updatedReport = await Report.findByIdAndUpdate(
     reportId,
-    { status },
+    { status: payload.status, adminNotes: payload.adminNotes },
     { new: true },
   );
 
@@ -29,13 +40,18 @@ const updateReportStatus = async (reportId: string, status: string) => {
   }
   return updatedReport;
 };
-const getMyReports = async (userId: string) => {
-  const result = await Report.find({ user: userId }).populate('submission');
+const getMyReports = async (userId: string, submissionId: string) => {
+  const result = await Report.findOne({
+    user: userId,
+    submission: submissionId,
+  }).populate('submission');
+
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, 'Report not found');
   }
   return result;
 };
+
 const getReportById = async (ReportId: string) => {
   const result = await Report.findById(ReportId).populate('user submission');
   if (!result) {

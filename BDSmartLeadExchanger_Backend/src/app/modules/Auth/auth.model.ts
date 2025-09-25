@@ -14,6 +14,8 @@ const UserSchema = new Schema<IUser>(
     password: { type: String, required: true },
     role: { type: String, default: 'user', required: true },
     image: { type: String, required: true, default: '' },
+    ProfileImage: { type: String, required: true, default: '' },
+
     surfingBalance: { type: Number, default: 5 },
     wallet: { type: Number, default: 0 },
     isApproved: { type: Boolean, default: false, required: true },

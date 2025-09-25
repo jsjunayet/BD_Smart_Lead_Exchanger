@@ -44,6 +44,11 @@ router.post(
 );
 router.patch(
   '/jobEdit/:id',
+  upload.single('file'),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   auth('admin', 'user', 'superAdmin'),
   jobController.updateJob,
 );

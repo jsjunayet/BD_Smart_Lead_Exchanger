@@ -16,11 +16,16 @@ const jobPost = catchAsync(async (req, res) => {
 const approveOrrejectJob = catchAsync(async (req, res) => {
   const userId = req.params.id;
   const adminId = req.user.id;
-  const result = await jobService.approveOrrejectJob(userId, adminId, req.body);
+  console.log(req.body.action);
+  const result = await jobService.approveOrrejectJob(
+    userId,
+    adminId,
+    req.body.action,
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Deposit Create Succesfully!',
+    message: `Job Post Create ${req.body.action}  Succesfully!`,
     data: result,
   });
 });
@@ -76,7 +81,7 @@ const reviewSubmission = catchAsync(async (req, res) => {
 const updateJob = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const jobId = req.params.id;
-  const result = await jobService.updateJob(jobId, userId, req.body);
+  const result = await jobService.updateJob(jobId, userId, req.body, req.file);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -84,6 +89,7 @@ const updateJob = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 export const jobController = {
   jobPost,
   getAlljobForAdmin,

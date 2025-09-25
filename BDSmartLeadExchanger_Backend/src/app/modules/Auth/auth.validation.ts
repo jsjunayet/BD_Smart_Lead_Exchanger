@@ -25,6 +25,11 @@ const signupValidationSchema = z.object({
         required_error: 'Image is required',
       })
       .optional(),
+    ProfileImage: z
+      .string({
+        required_error: 'Image is required',
+      })
+      .optional(),
     password: z
       .string({ required_error: 'Password is required' })
       .min(6, 'Password must be at least 6 characters'),

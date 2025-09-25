@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AuthRoutes } from '../modules/Auth/auth.route';
 import { BkashRoutes } from '../modules/Bkash/bkash.route';
+import { dashboardRouter } from '../modules/dashbaord/dashhboard.route';
 import { DepositRoutes } from '../modules/deposit/deposit.route';
 import { jobRoutes } from '../modules/job/job.route';
 import { JobSubmissionRoutes } from '../modules/JobSubmission/JobSubmission.route';
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: '/bkash',
     route: BkashRoutes,
+  },
+  {
+    path: '/dashboard',
+    route: dashboardRouter,
   },
 ];
 

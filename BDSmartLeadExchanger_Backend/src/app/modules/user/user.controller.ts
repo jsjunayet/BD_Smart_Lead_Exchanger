@@ -22,7 +22,16 @@ const GetAllSingleUser = catchAsync(async (req, res) => {
     data: result,
   });
 });
-
+const GetDashboardData = catchAsync(async (req, res) => {
+  const id = req.user.userId;
+  const result = await UserServices.GetDashboardData(id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Dashbaord Data Retrived Succesfully!',
+    data: result,
+  });
+});
 const GetAllSingleUserForAdmin = catchAsync(async (req, res) => {
   const id = req.params.id;
   const result = await UserServices.GetAllSingleUserForAdmin(id);
@@ -54,6 +63,18 @@ const ApprovedUser = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const userRoleUpdate = catchAsync(async (req, res) => {
+  const userId = req.params.id;
+  const adminId = req.user.userId;
+  const { newRole } = req.body;
+  const result = await UserServices.userRoleUpdate(adminId, userId, newRole);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Sucessfully User Role Update!',
+    data: result,
+  });
+});
 const DeletedUser = catchAsync(async (req, res) => {
   const id = req.user.userId;
   const userId = req.params.id;
@@ -73,4 +94,6 @@ export const UserController = {
   ApprovedUser,
   DeletedUser,
   GetAllSingleUserForAdmin,
+  GetDashboardData,
+  userRoleUpdate,
 };

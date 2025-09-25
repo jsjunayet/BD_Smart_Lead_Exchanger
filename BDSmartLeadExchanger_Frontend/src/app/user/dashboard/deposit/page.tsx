@@ -19,6 +19,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createdeposit, getOwndeposit } from "@/services/depositService";
+import { getAllPaymentSetup } from "@/services/paymentSetupService";
 import {
   CheckCircle,
   Clock,
@@ -28,45 +30,41 @@ import {
   Smartphone,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const Deposit = () => {
+  const [MyDeposit, setMyDeposit] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [Bkash, setBkash] = useState([]);
   const [depositForm, setDepositForm] = useState({
     amount: "",
     transactionId: "",
     bkashNumber: "",
   });
 
-  const depositHistory = [
-    {
-      id: 1,
-      amount: 5000,
-      transactionId: "TXN123456789",
-      bkashNumber: "01712345678",
-      status: "success",
-      date: "2024-01-20",
-      adminNote: "Verified successfully",
-    },
-    {
-      id: 2,
-      amount: 3000,
-      transactionId: "TXN987654321",
-      bkashNumber: "01712345678",
-      status: "pending",
-      date: "2024-01-22",
-      adminNote: "",
-    },
-    {
-      id: 3,
-      amount: 2000,
-      transactionId: "TXN456789123",
-      bkashNumber: "01712345678",
-      status: "rejected",
-      date: "2024-01-18",
-      adminNote: "Invalid transaction ID",
-    },
-  ];
-
+  const fetchDeposit = async () => {
+    try {
+      const res = await getOwndeposit();
+      console.log(res);
+      setMyDeposit(res?.data);
+    } catch (error) {
+      console.error("Error fetching workplace jobs:", error.message);
+    }
+  };
+  const fetchBkash = async () => {
+    try {
+      const res = await getAllPaymentSetup();
+      console.log(res);
+      setBkash(res?.data);
+    } catch (error) {
+      console.error("Error fetching workplace jobs:", error.message);
+    }
+  };
+  useEffect(() => {
+    fetchDeposit();
+    fetchBkash();
+  }, []);
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "success":
@@ -95,9 +93,39 @@ const Deposit = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Deposit request:", depositForm);
+    const payload = {
+      amount: Number(depositForm.amount),
+      transactionId: depositForm.transactionId,
+      bkashNumber: depositForm.bkashNumber,
+    };
+
+    try {
+      setIsLoading(true);
+      const res = await createdeposit(payload);
+      console.log(res);
+      if (res?.success) {
+        toast("Deposit request submitted successfully");
+        setDepositForm({
+          amount: "",
+          transactionId: "",
+          bkashNumber: "",
+        });
+        fetchDeposit();
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+        toast.error(
+          "Failed to submit deposit request: " +
+            (res?.errorSources?.map((err: any) => err.message).join(", ") ||
+              "Unknown error")
+        );
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error("Error creating deposit:", error);
+    }
     // Handle deposit submission logic here
   };
 
@@ -216,9 +244,10 @@ const Deposit = () => {
 
                   <Button
                     type="submit"
+                    disabled={isLoading}
                     className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
                   >
-                    Submit Deposit Request
+                    {isLoading ? "Submitting..." : "Submit Deposit Request"}
                   </Button>
                 </form>
               </CardContent>
@@ -241,7 +270,11 @@ const Deposit = () => {
                       <p className="font-medium">বিকাশে টাকা পাঠান</p>
                       <p>
                         আমাদের বিকাশ মার্চেন্ট নম্বরে টাকা পাঠান:{" "}
-                        <strong className="text-blue-900">01XXXXXXXXX</strong>
+                        <strong className="text-blue-900">
+                          {Bkash.length > 0
+                            ? Bkash[0].number
+                            : "No number available"}
+                        </strong>
                       </p>
                     </div>
                   </div>
@@ -254,7 +287,7 @@ const Deposit = () => {
                       <p>
                         বর্তমানে ১ ডলারের মূল্য{" "}
                         <span className="font-semibold text-blue-900">
-                          ১৩২ টাকা
+                          {Bkash.length > 0 ? Bkash[0].rate : "132"} টাকা
                         </span>
                       </p>
                     </div>
@@ -338,10 +371,10 @@ const Deposit = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {depositHistory.map((deposit) => (
+                    {MyDeposit?.map((deposit) => (
                       <TableRow key={deposit.id}>
                         <TableCell>
-                          {new Date(deposit.date).toLocaleDateString()}
+                          {new Date(deposit.createdAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="font-medium">
                           ৳{deposit.amount.toLocaleString()}
@@ -352,9 +385,9 @@ const Deposit = () => {
                         <TableCell>{deposit.bkashNumber}</TableCell>
                         <TableCell>{getStatusBadge(deposit.status)}</TableCell>
                         <TableCell>
-                          {deposit.adminNote && (
+                          {deposit.message && (
                             <span className="text-sm text-gray-600">
-                              {deposit.adminNote}
+                              {deposit.message}
                             </span>
                           )}
                         </TableCell>
@@ -364,7 +397,7 @@ const Deposit = () => {
                 </Table>
               </div>
 
-              {depositHistory.length === 0 && (
+              {MyDeposit?.length === 0 && (
                 <div className="text-center py-8">
                   <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">

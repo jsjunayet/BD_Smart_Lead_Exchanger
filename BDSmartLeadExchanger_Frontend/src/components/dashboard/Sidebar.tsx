@@ -56,11 +56,6 @@ const Sidebar = () => {
       href: "/admin/dashboard/all-jobs",
       icon: Briefcase,
     },
-    {
-      title: "All Submissions",
-      href: "/admin/dashboard/all-submissions",
-      icon: FileText,
-    },
     { title: "Reports", href: "/admin/dashboard/all-reports", icon: History },
     {
       title: "Payment Setup",

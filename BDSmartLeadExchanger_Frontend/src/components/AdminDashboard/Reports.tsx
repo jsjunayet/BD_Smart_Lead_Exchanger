@@ -19,8 +19,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  getAllReportService,
+  UpdateReportService,
+} from "@/services/reportService";
 import { AlertTriangle, Check, Eye, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface Report {
@@ -39,51 +43,28 @@ const ReportManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [adminResponse, setAdminResponse] = useState("");
+  const [reports, setReports] = useState<Report[]>([]); // সব reports
+  const [openModal, setopenModal] = useState(false);
+  const fetchReports = async () => {
+    try {
+      const res = await getAllReportService();
+      console.log(res);
+      setReports(res.data);
+    } catch (error) {
+      console.error("Failed to fetch Reports", error);
+    }
+  };
+  useEffect(() => {
+    fetchReports();
+  }, []);
 
-  const reportsData: Report[] = [
-    {
-      id: "RPT001",
-      user: "Alice Johnson",
-      submission: "SUB001",
-      submissionName: "Marketing Campaign Complete",
-      jobTitle: "Social Media Marketing Campaign",
-      reason:
-        "Submission was unfairly rejected. I completed all requirements but got rejected without proper explanation.",
-      status: "pending",
-      createdAt: "2024-01-15 02:30 PM",
-    },
-    {
-      id: "RPT002",
-      user: "Bob Smith",
-      submission: "SUB005",
-      submissionName: "Website Design Mockup",
-      jobTitle: "UI/UX Design Project",
-      reason:
-        "Job poster changed requirements after submission and then rejected my work.",
-      status: "resolved",
-      createdAt: "2024-01-14 11:15 AM",
-      adminResponse:
-        "After reviewing both submissions and communications, we found the requirements were clear from the beginning. However, we've provided additional feedback to help improve future submissions.",
-    },
-    {
-      id: "RPT003",
-      user: "Carol Brown",
-      submission: "SUB008",
-      submissionName: "Content Writing Sample",
-      jobTitle: "Blog Article Writing",
-      reason:
-        "Payment was not released even after approval. It's been 3 days since approval.",
-      status: "rejected",
-      createdAt: "2024-01-13 09:45 AM",
-      adminResponse:
-        "Payment was processed correctly. The delay was due to banking processing time, which is mentioned in our terms.",
-    },
-  ];
-
-  const filteredReports = reportsData.filter(
+  const filteredReports = reports?.filter(
     (report) =>
-      report.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.submission.job.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       report.reason.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -104,33 +85,21 @@ const ReportManagement = () => {
     }
   };
 
-  const getPriorityBadge = (reason: string) => {
-    const lowKeywords = ["question", "clarification", "help"];
-    const highKeywords = ["unfair", "scam", "fraud", "payment", "money"];
-
-    const lowerReason = reason.toLowerCase();
-    const hasHighPriority = highKeywords.some((keyword) =>
-      lowerReason.includes(keyword)
-    );
-    const hasLowPriority = lowKeywords.some((keyword) =>
-      lowerReason.includes(keyword)
-    );
-
-    if (hasHighPriority) {
-      return <Badge variant="destructive">High Priority</Badge>;
-    } else if (hasLowPriority) {
-      return <Badge variant="outline">Low Priority</Badge>;
-    }
-    return <Badge variant="secondary">Medium Priority</Badge>;
-  };
-
-  const handleReportAction = (
+  const handleReportAction = async (
     reportId: string,
-    action: "resolve" | "reject"
+    action: "resolved" | "rejected"
   ) => {
-    toast.success(`Report ${action}d successfully`);
-    setAdminResponse("");
-    setSelectedReport(null);
+    const payload = { status: action, adminNotes: adminResponse };
+    const res = await UpdateReportService(reportId, payload);
+    console.log(res);
+    if (res.success) {
+      toast.success(`Report ${action}d successfully`);
+      setAdminResponse("");
+      setSelectedReport(null);
+      fetchReports();
+    } else {
+      toast.error(`${res.message}`);
+    }
   };
 
   return (
@@ -149,7 +118,7 @@ const ReportManagement = () => {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by user, job title, or reason..."
+              placeholder="Search by user, email, job title, or reason..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -161,14 +130,18 @@ const ReportManagement = () => {
       {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Reports ({filteredReports.length})</CardTitle>
+          <CardTitle>All Reports ({filteredReports?.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Report ID</TableHead>
-                <TableHead>User</TableHead>
+                <TableHead>Report User Name</TableHead>
+                <TableHead>Report User Email</TableHead>
+                <TableHead>Job CreatorBy Email</TableHead>
+                <TableHead>Job CreatorBy Name</TableHead>
+
                 <TableHead>Job Title</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
@@ -176,15 +149,17 @@ const ReportManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredReports.map((report) => (
+              {filteredReports?.map((report) => (
                 <TableRow key={report.id}>
-                  <TableCell className="font-medium">{report.id}</TableCell>
-                  <TableCell>{report.user}</TableCell>
+                  <TableCell className="font-medium">{report._id}</TableCell>
+                  <TableCell>{report.user.name}</TableCell>
+                  <TableCell>{report.user.email}</TableCell>
+                  <TableCell>{report.submission.job.postedBy.email}</TableCell>
+                  <TableCell>{report.submission.job.postedBy.name}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{report.jobTitle}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Sub: {report.submission}
+                      <p className="font-medium">
+                        {report.submission.job.title}
                       </p>
                     </div>
                   </TableCell>
@@ -206,25 +181,25 @@ const ReportManagement = () => {
                           <DialogHeader>
                             <DialogTitle className="flex items-center space-x-2">
                               <AlertTriangle className="h-5 w-5 text-orange-500" />
-                              <span>Report Details - {report.id}</span>
+                              <span>Report Details - {report._id}</span>
                             </DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
-                            <div className="grid grid-cols-3 gap-4">
-                              <div>
-                                <label className="text-sm font-medium">
-                                  Reported By
-                                </label>
-                                <p className="text-sm text-muted-foreground">
-                                  {report.user}
-                                </p>
-                              </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Reported By
+                              </label>
+                              <p className="text-sm text-muted-foreground">
+                                {report.user.name}, {report.user.email}
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <label className="text-sm font-medium">
                                   Job Title
                                 </label>
                                 <p className="text-sm text-muted-foreground">
-                                  {report.jobTitle}
+                                  {report.submission.job.title}
                                 </p>
                               </div>
                               <div>
@@ -240,20 +215,20 @@ const ReportManagement = () => {
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <label className="text-sm font-medium">
-                                  Submission ID
+                                  Job CreatorBy Email
                                 </label>
                                 <p className="text-sm text-muted-foreground">
-                                  {report.submission}
+                                  {report.submission.job.postedBy.email}
                                 </p>
                               </div>
                             </div>
 
                             <div>
                               <label className="text-sm font-medium">
-                                Submission Name
+                                Job CreatorBy Name
                               </label>
                               <p className="text-sm text-muted-foreground">
-                                {report.submissionName}
+                                {report.submission.job.postedBy.name}
                               </p>
                             </div>
 
@@ -265,7 +240,14 @@ const ReportManagement = () => {
                                 <p className="text-sm">{report.reason}</p>
                               </div>
                             </div>
-
+                            <div>
+                              <label className="text-sm font-medium">
+                                Admin Notes
+                              </label>
+                              <div className="bg-muted p-4 rounded-lg mt-1">
+                                <p className="text-sm">{report.adminNotes}</p>
+                              </div>
+                            </div>
                             {report.adminResponse && (
                               <div>
                                 <label className="text-sm font-medium">
@@ -297,7 +279,7 @@ const ReportManagement = () => {
                                 <div className="flex space-x-2">
                                   <Button
                                     onClick={() =>
-                                      handleReportAction(report.id, "resolve")
+                                      handleReportAction(report._id, "resolved")
                                     }
                                     className="bg-green-500 hover:bg-green-600"
                                   >
@@ -306,7 +288,7 @@ const ReportManagement = () => {
                                   </Button>
                                   <Button
                                     onClick={() =>
-                                      handleReportAction(report.id, "reject")
+                                      handleReportAction(report._id, "rejected")
                                     }
                                     variant="destructive"
                                   >
