@@ -3,20 +3,20 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const partners = [
   {
-    name: "Mim",
-    role: "Freelancer",
-    status: "PARTNER",
-    avatar: "",
-  },
-  {
-    name: "MD RUMAN",
-    role: "Freelancer",
+    name: "Md Morshed Hossain",
+
     status: "SUPPORT SYSTEM OPERATOR",
-    avatar: "",
+    avatar: "/pic.jpg",
   },
   {
-    name: "RUMANA",
-    role: "Freelancer",
+    name: "Al Imran Niloy",
+
+    status: "SUPPORT SYSTEM OPERATOR",
+    avatar: "pk.jpg",
+  },
+  {
+    name: "Martin Becker",
+
     status: "SUPPORT SYSTEM OPERATOR",
     avatar: "",
   },
