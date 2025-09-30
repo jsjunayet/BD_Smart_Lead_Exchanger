@@ -10,32 +10,32 @@ const faqs = [
   {
     question: "What is BDSmartLeadX?",
     answer:
-      "BDSmartLeadX is a digital services provider that helps you exchange leads and earn money through various online tasks.",
+      "BDSmartLeadX is an online platform that lets you exchange leads and earn money by performing digital tasks.",
   },
   {
-    question: "How to earn from BDSmartLeadX?",
+    question: "How can I earn with BDSmartLeadX?",
     answer:
-      "You can earn by completing tasks, posting jobs, and participating in the lead exchange program.",
+      "You can earn through task completion, posting jobs, and participating in the lead exchange system.",
   },
   {
-    question: "Does BDSmartLeadX charge any fees?",
+    question: " Does BDSmartLeadX require any fees?",
     answer:
-      "BDSmartLeadX has a minimal daily server fee to maintain the platform and ensure quality service.",
+      "A minimal daily maintenance fee is charged to keep the service smooth and reliable.",
   },
   {
-    question: "How BDSmartLeadX Work?",
+    question: "How does BDSmartLeadX function?",
     answer:
-      "BDSmartLeadX works by connecting job posters with task completers in a secure and transparent environment.",
+      "It works by securely connecting job posters with task completers in a transparent environment.",
   },
   {
-    question: "How do I get my leads completed?",
+    question: "How do I get my leads done?",
     answer:
-      "Once you post a job and it gets approved, it will be available to other users who can complete your tasks.",
+      "Once your job is approved, it will be visible to other users who can finish your tasks.",
   },
   {
-    question: "Will users get any support from the owner?",
+    question: "Will I get support if needed?",
     answer:
-      "Yes, we provide 24/7 customer support through our dedicated support team and multiple communication channels.",
+      "Yes, our support team is available 24/7 with multiple channels to assist you anytime..",
   },
 ];
 
@@ -44,7 +44,7 @@ export const FAQSection = () => {
     <section className="py-12 bg-muted/30">
       <div className="max-w-6xl mx-auto ">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-success">
-          Frequently asked Questions
+          Help & Information Hub
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {faqs.map((faq, index) => (

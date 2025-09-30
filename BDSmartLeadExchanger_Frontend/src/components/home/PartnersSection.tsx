@@ -27,13 +27,13 @@ export const PartnersSection = () => {
     <section className="py-12 bg-muted/30">
       <div className="max-w-6xl mx-auto ">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-foreground">
-          Our Partners
+          The Team Behind the Vision
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {partners.map((partner, index) => (
             <Card
               key={index}
-              className="bg-primary text-primary-foreground text-center"
+              className="bg-gradient-to-r from-blue-600 to-green-600  text-white  text-center"
             >
               <CardContent className="p-6">
                 <div className="mb-4">

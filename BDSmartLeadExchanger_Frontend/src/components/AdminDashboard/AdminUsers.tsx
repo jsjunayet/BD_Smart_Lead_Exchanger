@@ -28,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { useUser } from "@/context/UserContext";
 import {
   Approveduser,
   deleteduser,
@@ -45,12 +46,16 @@ import {
   User as UserIcon,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DataTablePagination } from "../share/DataTablePagination";
 import { SearchInput } from "../share/SearchInput";
+import { ScreenshotViewer } from "../ui/screenshot-viewer";
 
 export default function AdminUsers() {
+  const { user } = useUser();
+  const currentUser = user;
   const [users, setUsers] = useState<User[]>();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,13 +64,19 @@ export default function AdminUsers() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [showViewer, setShowViewer] = useState(false);
+
   const fetchUsers = async () => {
     try {
+      setIsLoading(true);
       const res = await getAlluser();
       console.log(res); // calls the API route above
       setUsers(res.data);
     } catch (error) {
       console.error("Failed to fetch users", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   useEffect(() => {
@@ -141,13 +152,16 @@ export default function AdminUsers() {
     action: "approved" | "rejected"
   ) => {
     console.log(`User ID: ${userId}, Action: ${action}`);
+    setIsLoading(true);
     const res = await Approveduser(userId, action);
     console.log(res, "approved");
     if (res.success) {
       toast.success(`User has been ${action}`);
+      setIsLoading(false);
       fetchUsers();
     } else {
       toast.error(`Failed to ${action} user`);
+      setIsLoading(false);
     }
   };
   return (
@@ -246,7 +260,6 @@ export default function AdminUsers() {
                 <TableHead>Contact</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Balance</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -300,7 +313,6 @@ export default function AdminUsers() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge(user)}</TableCell>
                   <TableCell>
                     <Select
                       value={user.role}
@@ -336,6 +348,7 @@ export default function AdminUsers() {
                           <Button
                             variant="outline"
                             size="sm"
+                            disabled={user.role === "superAdmin"}
                             onClick={() => setSelectedUser(user)}
                           >
                             <Eye className="h-4 w-4" />
@@ -465,35 +478,57 @@ export default function AdminUsers() {
                               {selectedUser.image && (
                                 <div className="col-span-2 pt-4">
                                   <p className="text-muted-foreground">
-                                    Profile Image
+                                    Profile ID ScreenShot
                                   </p>
-                                  <img
+                                  <Image
+                                    height={500}
+                                    width={500}
                                     src={selectedUser.image}
                                     alt={selectedUser.name}
+                                    onClick={() =>
+                                      setShowViewer((prev) => !prev)
+                                    }
                                     className="w-24 h-24 rounded-full border mt-1"
                                   />
                                 </div>
+                              )}
+                              {showViewer && (
+                                <ScreenshotViewer
+                                  screenshots={[selectedUser.image]}
+                                  titles={"Profile Image"}
+                                  professionalName={
+                                    selectedUser.email || selectedUser.name
+                                  }
+                                  professionalImage={
+                                    selectedUser.image || "/placeholder.svg"
+                                  }
+                                  maxPreview={4}
+                                  onClose={() => setShowViewer(false)} // make sure your viewer supports closing
+                                />
                               )}
                               {user?.isApproved === false && (
                                 <div className="space-y-3">
                                   <div className="flex space-x-2">
                                     <Button
+                                      disabled={isLoading}
                                       onClick={() =>
                                         handleStatusUpdate(user._id, "approved")
                                       }
                                       className="bg-green-500 hover:bg-green-600"
                                     >
                                       <Check className="h-4 w-4 mr-2" />
-                                      Approve
+                                      {isLoading ? "Approve..." : "Approve"}
                                     </Button>
                                     <Button
+                                      disabled={isLoading}
                                       onClick={() =>
                                         handleStatusUpdate(user._id, "rejected")
                                       }
                                       variant="destructive"
                                     >
                                       <X className="h-4 w-4 mr-2" />
-                                      Reject
+
+                                      {isLoading ? " Reject..." : " Reject"}
                                     </Button>
                                   </div>
                                 </div>
@@ -512,6 +547,14 @@ export default function AdminUsers() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            disabled={
+                              // Rule:
+                              // 1. Admin cannot delete another admin
+                              (currentUser?.role === "admin" &&
+                                user?.role === "admin") ||
+                              // 2. SuperAdmin can never be deleted by anyone
+                              user.role === "superAdmin"
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -536,6 +579,11 @@ export default function AdminUsers() {
                             <Button
                               variant="destructive"
                               onClick={() => handleDeleteUser(user._id)}
+                              disabled={
+                                (currentUser?.role === "admin" &&
+                                  user?.role === "admin") ||
+                                user?.role === "superAdmin"
+                              }
                             >
                               Delete User
                             </Button>

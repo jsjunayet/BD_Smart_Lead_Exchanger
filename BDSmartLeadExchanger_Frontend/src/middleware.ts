@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "./services/authService";
+import { getSingleuser } from "./services/userService";
 
 export async function middleware(req) {
-  const token = await getCurrentUser();
-  console.log(token, "tjere aaa");
+  // const token = await getCurrentUser();
+  const { data: token } = await getSingleuser();
+  // console.log(data, "datajfdsalfjd");
+
   const { pathname } = req.nextUrl;
 
   // Public routes (skip check)
@@ -29,10 +31,26 @@ export async function middleware(req) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
+  // **NEW: Wallet balance check for users**
+  // If user has 0 wallet balance and is trying to access any user route except deposit page
+  if (
+    token.role === "user" &&
+    token.wallet <= 0 &&
+    pathname.startsWith("/user") &&
+    !pathname.startsWith("/user/dashboard/deposit") &&
+    !pathname.startsWith("/user/logout") // Allow logout
+  ) {
+    return NextResponse.redirect(new URL("/user/dashboard/deposit", req.url));
+  }
+
   return NextResponse.next();
 }
 
 // Apply to dashboard routes only
 export const config = {
-  matcher: ["/admin/:path*", "/user/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/user/:path*",
+    // Add specific routes you want to protect with wallet check
+  ],
 };

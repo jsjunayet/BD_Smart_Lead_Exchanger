@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getCurrentUser, loginUser } from "@/services/authService";
 import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -59,12 +60,20 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">BD</span>
+          <Link href="/" className="flex items-center justify-center space-x-2">
+            <div className="">
+              <Image
+                className=" rounded-full"
+                src="/logo.png" // Image file from 'public' folder
+                alt="BDSmartLeadX logo" // More descriptive alt text for accessibility
+                width={60} // Width of the logo
+                height={60} // Height of the logo
+                layout="intrinsic" // Ensure the logo scales properly with its container
+                quality={75} // Adjust quality if needed (default is 75)
+              />
             </div>
-            <span className="text-2xl font-bold text-gray-900">
-              Smart Lead Exchange
+            <span className="font-bold text-xl  bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+              BDSmartLeadX
             </span>
           </Link>
         </div>

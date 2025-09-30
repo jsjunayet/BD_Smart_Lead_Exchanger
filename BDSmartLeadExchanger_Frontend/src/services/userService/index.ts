@@ -29,11 +29,11 @@ export const getAlluser = async () => {
   }
 };
 export const getSingleuser = async () => {
-  const token = (await cookies()).get("accessToken")!.value;
+  const token = (await cookies())?.get("accessToken")?.value || "";
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API}/user/admin/get-single`,
+      `${process.env.NEXT_PUBLIC_BASE_API}/user/user/get-single`,
       {
         method: "GET",
         headers: {

@@ -52,6 +52,7 @@ const loginUser = async (payload: TLoginUser) => {
     email: user.email,
     userId: user._id,
     role: user.role,
+    wallet: user.wallet,
   };
 
   const accessToken = createToken(
@@ -182,6 +183,7 @@ const refreshToken = async (token: string) => {
     email: user.email,
     userId: user._id,
     role: user.role,
+    wallet: user.wallet,
   };
 
   const accessToken = createToken(
@@ -222,10 +224,12 @@ const forgetPassword = async (email: string) => {
       'Your account is waiting for admin approval!',
     );
   }
+  console.log(user);
   const jwtPayload = {
     email: user.email,
     userId: user._id,
     role: user.role,
+    wallet: user.wallet,
   };
 
   const resetToken = createToken(

@@ -16,7 +16,7 @@ router.get(
   UserController.GetAllSingleUserForAdmin,
 );
 router.get(
-  '/admin/get-single',
+  '/user/get-single',
   auth('admin', 'user', 'superAdmin'),
   UserController.GetAllSingleUser,
 );
@@ -37,7 +37,7 @@ router.patch(
 );
 router.delete(
   '/admin/user-deleted/:id',
-  auth('superAdmin'),
+  auth('superAdmin', 'admin'),
   UserController.DeletedUser,
 );
 router.patch(

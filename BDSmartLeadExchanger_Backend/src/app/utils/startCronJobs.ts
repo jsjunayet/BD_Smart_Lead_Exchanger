@@ -10,7 +10,7 @@ export const startCronJobs = () => {
     const users = await User.find();
     for (const u of users) {
       if (u.wallet > 0) {
-        u.wallet = Math.max(0, u.wallet - 0.5);
+        u.wallet = Math.max(0, u.wallet - 0.05);
         await u.save();
       }
     }

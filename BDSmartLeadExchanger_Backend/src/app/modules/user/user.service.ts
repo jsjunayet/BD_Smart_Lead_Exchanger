@@ -132,7 +132,7 @@ const UserProfileUpdate = async (id: string, body: Partial<any>, file) => {
   return result;
 };
 // Approve user
-const ApprovedUser = async (adminId: string, userId: string, newRole) => {
+const ApprovedUser = async (adminId: string, userId: string, action) => {
   // 1. Check if admin exists
   const admin = await User.findById(adminId);
 
@@ -170,7 +170,7 @@ const ApprovedUser = async (adminId: string, userId: string, newRole) => {
   // 3. Approve the user
   const result = await User.findByIdAndUpdate(
     userId,
-    { isApproved: true },
+    { isApproved: action === 'approved' },
     { new: true },
   );
   const html = `

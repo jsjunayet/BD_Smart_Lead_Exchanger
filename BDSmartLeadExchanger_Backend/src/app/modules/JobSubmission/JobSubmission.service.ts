@@ -150,10 +150,15 @@ const getSingleSubmission = async (jobsubmissionId: string) => {
     .populate('user');
   return result;
 };
+const deletedSubmission = async (jobsubmissionId: string) => {
+  const result = await JobSubmission.deleteOne({ _id: jobsubmissionId });
+  return result;
+};
 export const JobSubmissionService = {
   submitJob,
   reviewSubmission,
   getAllSubmission,
   getOwnSubmission,
   getSingleSubmission,
+  deletedSubmission,
 };

@@ -19,7 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ApprovedOrRejectJobs, getAlljobs } from "@/services/jobService";
+import {
+  ApprovedOrRejectJobs,
+  deletedSubmission,
+  getAlljobs,
+} from "@/services/jobService";
 import { ApprovedOrRejectSubmission } from "@/services/JobSubmission";
 import {
   Calendar,
@@ -29,6 +33,7 @@ import {
   ExternalLink,
   Eye,
   Search,
+  Trash,
   Users,
   X,
 } from "lucide-react";
@@ -205,6 +210,12 @@ const MyJobs = () => {
         submission.user.email.toLowerCase().includes(searchLower)
       );
     });
+  };
+
+  const handleDeleted = async (id: string) => {
+    const res = await deletedSubmission(id);
+    fetchData();
+    console.log(res);
   };
   return (
     <div className="space-y-6">
@@ -522,6 +533,16 @@ const MyJobs = () => {
                                     >
                                       <X className="h-3 w-3 mr-1" />
                                       Reject
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleDeleted(submission._id)
+                                      }
+                                      className="bg-primary hover:bg-primary/80"
+                                    >
+                                      <Trash className="h-3 w-3 mr-1" />
+                                      Deleted
                                     </Button>
                                   </div>
                                 </TableCell>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export const Footer = () => {
@@ -7,10 +8,20 @@ export const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-1 sm:col-span-2 md:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">BD</span>
+              <div className="w-8 h-8  rounded-lg flex items-center justify-center">
+                <Image
+                  className=" rounded-full"
+                  src="/logo.png" // Image file from 'public' folder
+                  alt="BDSmartLeadX logo" // More descriptive alt text for accessibility
+                  width={60} // Width of the logo
+                  height={60} // Height of the logo
+                  layout="intrinsic" // Ensure the logo scales properly with its container
+                  quality={75} // Adjust quality if needed (default is 75)
+                />{" "}
               </div>
-              <span className="text-xl font-bold">Smart Lead Exchange</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                Smart Lead Exchange
+              </span>
             </div>
             <p className="text-gray-400 text-sm">
               Bangladesh&apos;s premier job exchange platform connecting
@@ -63,11 +74,34 @@ export const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Connect With Us</h3>
             <div className="flex space-x-4 text-sm">
-              <a href="#" className="text-gray-400 hover:text-white">
+              {/* Email */}
+
+              {/* WhatsApp */}
+              <a
+                href="https://wa.me/8801571141226"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white"
+              >
+                WhatsApp
+              </a>
+
+              {/* Telegram */}
+              <a
+                href="https://t.me/+8801571141226"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white"
+              >
                 Telegram
               </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                WhatsApp
+            </div>
+            <div>
+              <a
+                href="mailto:bdsmartleadexchanger@gmail.com"
+                className="text-gray-400 hover:text-white"
+              >
+                bdsmartleadexchanger@gmail.com
               </a>
             </div>
           </div>

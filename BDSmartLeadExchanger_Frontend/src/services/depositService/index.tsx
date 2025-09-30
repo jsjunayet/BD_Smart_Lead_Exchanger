@@ -28,6 +28,8 @@ export const getAlldeposit = async () => {
   }
 };
 export const getOwndeposit = async () => {
+  const token = (await cookies()).get("accessToken")!.value;
+
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_API}/deposit/get-own`,

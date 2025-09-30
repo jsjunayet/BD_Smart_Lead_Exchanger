@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useUser } from "@/context/UserContext";
 import {
   createPaymentSetup,
   deletedPaymentSetup,
@@ -40,6 +41,7 @@ interface PaymentRate {
 }
 
 export default function AdminPaymentSetup() {
+  const { user } = useUser();
   const [paymentRates, setPaymentRates] = useState<PaymentRate[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRate, setEditingRate] = useState<PaymentRate | null>(null);
@@ -176,7 +178,10 @@ export default function AdminPaymentSetup() {
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button disabled={loading} onClick={handleSubmit}>
+              <Button
+                disabled={loading || user?.role !== "superAdmin"}
+                onClick={handleSubmit}
+              >
                 {loading
                   ? editingRate
                     ? "Updating..."
@@ -222,6 +227,7 @@ export default function AdminPaymentSetup() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      disabled={user?.role !== "superAdmin"}
                       className="text-destructive"
                       onClick={() => handleDelete(rate._id!)}
                     >

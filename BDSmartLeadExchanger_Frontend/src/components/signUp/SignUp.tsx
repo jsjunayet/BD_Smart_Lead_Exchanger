@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/select";
 import { SignUpUser } from "@/services/authService";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 const Signup = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     userName: "",
@@ -63,6 +65,7 @@ const Signup = () => {
       console.log(res);
       if (res?.success) {
         toast.success(res.message);
+        router.push("/login");
         setloading(false);
         setFormData({});
       } else {
@@ -166,6 +169,8 @@ const Signup = () => {
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Bangladesh">Bangladesh</SelectItem>
+                      <SelectItem value="India">India</SelectItem>
                       <SelectItem value="United States">
                         United States
                       </SelectItem>
@@ -174,37 +179,10 @@ const Signup = () => {
                         United Kingdom
                       </SelectItem>
                       <SelectItem value="Australia">Australia</SelectItem>
-                      <SelectItem value="Germany">Germany</SelectItem>
-                      <SelectItem value="France">France</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-
-              {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="state">State * </Label>
-                  <Input
-                    id="state"
-                    placeholder="Enter your state"
-                    value={formData.state}
-                    onChange={(e) => handleInputChange("state", e.target.value)}
-                    className="bg-muted/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="zipCode">ZIP Code * </Label>
-                  <Input
-                    id="zipCode"
-                    placeholder="Enter your ZIP code"
-                    value={formData.zipCode}
-                    onChange={(e) =>
-                      handleInputChange("zipCode", e.target.value)
-                    }
-                    className="bg-muted/50"
-                  />
-                </div>
-              </div> */}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -300,7 +278,9 @@ const Signup = () => {
 
               {/* Profile Image Upload */}
               <div className="space-y-2">
-                <Label htmlFor="image">Upload Profile Image * </Label>
+                <Label htmlFor="image">
+                  Upload Profile ID Screenshot (with Name) *{" "}
+                </Label>
                 <Input
                   id="image"
                   type="file"

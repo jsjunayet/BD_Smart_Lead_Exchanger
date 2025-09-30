@@ -73,7 +73,7 @@ const Dashboard = () => {
               ${DashboardData.Balance || 0}
             </div>
             <p className="text-xs text-gray-600 mt-1">
-              Daily deduction: ${"0.5"}
+              Daily deduction: ${"0.05"}
             </p>
           </CardContent>
         </Card>

@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, logout } from "@/services/authService";
 import { Menu, User, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -32,13 +33,19 @@ export const Navbar = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">
-                LX
-              </span>
+          <Link href="/" className="flex items-center justify-center space-x-2">
+            <div className="">
+              <Image
+                className=" rounded-full"
+                src="/logo.png" // Image file from 'public' folder
+                alt="BDSmartLeadX logo" // More descriptive alt text for accessibility
+                width={60} // Width of the logo
+                height={60} // Height of the logo
+                layout="intrinsic" // Ensure the logo scales properly with its container
+                quality={75} // Adjust quality if needed (default is 75)
+              />
             </div>
-            <span className="font-bold text-xl text-foreground">
+            <span className="font-bold text-xl  bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
               BDSmartLeadX
             </span>
           </Link>
@@ -51,14 +58,9 @@ export const Navbar = () => {
             >
               Home
             </Link>
+
             <Link
-              href="/marketing"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Marketing Tools
-            </Link>
-            <Link
-              href="/workplace"
+              href="/user/dashboard/workplace"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               Work Place
@@ -83,7 +85,7 @@ export const Navbar = () => {
                 <Link href="/signup">
                   <Button
                     size="sm"
-                    className="bg-gradient-to-r from-red-600 to-pink-600 text-white"
+                    className="bg-gradient-to-r from-blue-600 to-green-600 text-white"
                   >
                     Sign Up
                   </Button>
@@ -142,7 +144,7 @@ export const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
+          <div className="md:hidden py-4 border-t border-border px-2">
             <div className="flex flex-col space-y-4">
               <Link
                 href="/"
@@ -150,14 +152,9 @@ export const Navbar = () => {
               >
                 Home
               </Link>
+
               <Link
-                href="/marketing"
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                Marketing Tools
-              </Link>
-              <Link
-                href="/workplace"
+                href="/user/dashboard/workplace"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 Work Place
@@ -179,7 +176,7 @@ export const Navbar = () => {
                   <Link href="/signup" className="flex-1">
                     <Button
                       size="sm"
-                      className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white"
+                      className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white"
                     >
                       Sign Up
                     </Button>

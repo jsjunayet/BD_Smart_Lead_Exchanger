@@ -24,7 +24,10 @@ const FeaturesSection = () => {
             <div className="space-y-8">
               <div>
                 <h2 className="text-4xl font-bold text-gray-800 mb-4">
-                  Why choose <span className="text-red-600">BDSmartLeadX</span>
+                  Why choose{" "}
+                  <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                    BDSmartLeadX
+                  </span>
                 </h2>
               </div>
 
@@ -36,7 +39,7 @@ const FeaturesSection = () => {
                     style={{ animationDelay: `${index * 200}ms` }}
                   >
                     <div className="flex-shrink-0 mt-1">
-                      <CheckCircle className="w-6 h-6 text-red-600" />
+                      <CheckCircle className="w-6 h-6 text-green-600" />
                     </div>
                     <span className="text-lg text-gray-700 font-medium">
                       {feature}
@@ -46,7 +49,7 @@ const FeaturesSection = () => {
               </div>
 
               <div className="pt-6">
-                <button className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-red-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                <button className="bg-gradient-to-r from-blue-600 to-green-600  text-white px-8 py-4 rounded-xl font-semibold hover:from-red-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
                   Register Now
                 </button>
               </div>
@@ -61,7 +64,7 @@ const FeaturesSection = () => {
                 <Image
                   width={800}
                   height={600}
-                  src="/hero.png"
+                  src="/video.jpg"
                   alt="Happy couple illustration"
                   className="w-full h-auto rounded-2xl"
                 />

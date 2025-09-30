@@ -140,6 +140,36 @@ export const Updatejobs = async (id: string, formdata): Promise<any> => {
     throw new Error(error.message || "Something went wrong");
   }
 };
+export const deletedSubmission = async (id: string): Promise<any> => {
+  const token = (await cookies()).get("accessToken")?.value;
+
+  if (!token) {
+    throw new Error("User is not authenticated");
+  }
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API}/submition/get-Job-deleted/job/${id}`,
+      {
+        method: "DELETE", // এখানে DELETED নয়, DELETE ব্যবহার করতে হবে
+        headers: {
+          Authorization: `${token}`, // Bearer token সাধারণ practice
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Failed to delete submission");
+    }
+
+    const result = await res.json();
+    revalidateTag("jobs");
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message || "Something went wrong");
+  }
+};
 export const ApprovedOrRejectJobs = async (id: string, data): Promise<any> => {
   console.log(data);
   const token = (await cookies()).get("accessToken")!.value;

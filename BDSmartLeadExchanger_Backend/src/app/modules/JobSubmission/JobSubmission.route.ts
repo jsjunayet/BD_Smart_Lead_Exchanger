@@ -37,4 +37,9 @@ router.get(
   auth('admin', 'superAdmin', 'user'),
   JobSubmissionController.getSingleSubmission,
 );
+router.delete(
+  '/get-Job-deleted/job/:id',
+  auth('admin', 'superAdmin'),
+  JobSubmissionController.deletedSubmission,
+);
 export const JobSubmissionRoutes = router;

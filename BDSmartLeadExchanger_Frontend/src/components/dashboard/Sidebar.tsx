@@ -8,7 +8,7 @@ import {
   FileText,
   History,
   LayoutDashboard,
-  MessageSquare,
+  PieChart,
   Plus,
   User,
 } from "lucide-react";
@@ -32,11 +32,6 @@ const Sidebar = () => {
     },
     { title: "Deposit", href: "/user/dashboard/deposit", icon: CreditCard },
     { title: "Profile", href: "/user/dashboard/profile", icon: User },
-    {
-      title: "Marketing Tools",
-      href: "/user/dashboard/marketing-tools",
-      icon: MessageSquare,
-    },
   ];
 
   const adminMenu = [
@@ -62,6 +57,8 @@ const Sidebar = () => {
       href: "/admin/dashboard/payment-setup",
       icon: User,
     },
+    { title: "Statistics", href: "/admin/dashboard/stats", icon: PieChart },
+
     { title: "Profile", href: "/admin/dashboard/profile", icon: User },
   ];
 

@@ -70,6 +70,16 @@ const getOwnSubmission = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const deletedSubmission = catchAsync(async (req, res) => {
+  const userId = req.params.id;
+  const result = await JobSubmissionService.deletedSubmission(userId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Get Single Submission Succesfully!',
+    data: result,
+  });
+});
 const getSingleSubmission = catchAsync(async (req, res) => {
   const userId = req.params.id;
   const result = await JobSubmissionService.getSingleSubmission(userId);
@@ -86,4 +96,5 @@ export const JobSubmissionController = {
   getAllSubmission,
   getOwnSubmission,
   getSingleSubmission,
+  deletedSubmission,
 };

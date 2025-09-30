@@ -11,6 +11,8 @@ const superUser = {
   publisherId: 'N/A',
   password: 'admin123',
   role: 'superAdmin',
+  ProfileImage:
+    'https://i.ibb.co.com/TMdYQ8r5/Whats-App-Image-2025-08-27-at-11-13-05-b41682ea.jpg',
   image:
     'https://i.ibb.co.com/TMdYQ8r5/Whats-App-Image-2025-08-27-at-11-13-05-b41682ea.jpg',
   isApproved: true,

@@ -1,12 +1,64 @@
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
-import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
-import { User } from '../auth/auth.model';
 import { JobSubmission } from '../JobSubmission/JobSubmission.model';
-import { IJob } from './job.interface';
 import { Job } from './job.model';
 
+// const jobPost = async (
+//   userId: string,
+//   data: {
+//     title: string;
+//     description: string;
+//     jobUrl: string;
+//     screenshotTitles: string[];
+//     thumbnail?: string;
+//   },
+//   file,
+// ) => {
+//   if (file) {
+//     const imageName = `${data.title}${data?.description}`;
+//     const path = file?.path;
+//     const { secure_url } = await sendImageToCloudinary(imageName, path);
+//     data.thumbnail = secure_url as string;
+//   }
+//   const existing = await Job.findOne({ postedBy: userId });
+//   if (existing) {
+//     throw new AppError(
+//       httpStatus.BAD_REQUEST,
+//       'User can post only one job, please edit it',
+//     );
+//   }
+
+//   const user = await User.findById(userId);
+//   if (!user || user.wallet <= 0) {
+//     throw new AppError(
+//       httpStatus.BAD_REQUEST,
+//       'Insufficient  balance to post job.',
+//     );
+//   }
+
+//   const job = new Job({
+//     title: data.title,
+//     description: data.description,
+//     jobUrl: data.jobUrl,
+//     screenshotTitles: data.screenshotTitles,
+//     thumbnail: data.thumbnail || '',
+//     postedBy: userId,
+//   });
+
+//   await job.save();
+//   return job;
+// };
+// Utility: sanitize public_id
+function sanitizePublicId(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/\s+/g, '-') // space → dash
+    .replace(/[^a-z0-9-_]/g, '') // remove special chars
+    .substring(0, 50); // optional max length
+}
+
+// Job Create
 const jobPost = async (
   userId: string,
   data: {
@@ -16,14 +68,15 @@ const jobPost = async (
     screenshotTitles: string[];
     thumbnail?: string;
   },
-  file,
+  file?: Express.Multer.File,
 ) => {
   if (file) {
-    const imageName = `${data.title}${data?.description}`;
-    const path = file?.path;
+    const imageName = sanitizePublicId(data.title); // ✅ only title
+    const path = file.path;
     const { secure_url } = await sendImageToCloudinary(imageName, path);
     data.thumbnail = secure_url as string;
   }
+
   const existing = await Job.findOne({ postedBy: userId });
   if (existing) {
     throw new AppError(
@@ -36,7 +89,7 @@ const jobPost = async (
   if (!user || user.wallet <= 0) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
-      'Insufficient  balance to post job.',
+      'Insufficient balance to post job.',
     );
   }
 
@@ -51,6 +104,37 @@ const jobPost = async (
 
   await job.save();
   return job;
+};
+
+// Job Update
+const updateJob = async (
+  jobId: string,
+  userId: string,
+  data: Partial<IJob>,
+  file?: Express.Multer.File,
+) => {
+  if (file) {
+    const imageName = sanitizePublicId(data.title || 'job-thumbnail'); // ✅ safe
+    const path = file.path;
+    const { secure_url } = await sendImageToCloudinary(imageName, path);
+    data.thumbnail = secure_url as string;
+  }
+
+  const job = await Job.findOne({ _id: jobId, postedBy: userId });
+  if (!job) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      'Job not found or permission denied',
+    );
+  }
+
+  data.approvedByAdmin = false; // admin has to approve again after update
+
+  const result = await Job.findByIdAndUpdate(jobId, data, {
+    new: true,
+    runValidators: true,
+  });
+  return result;
 };
 
 const approveOrrejectJob = async (
@@ -115,32 +199,32 @@ const getAllJobForAdmin = async () => {
 //     .sort({ createdAt: -1 });
 // };
 
-const updateJob = async (
-  jobId: string,
-  userId: string,
-  data: Partial<IJob>,
-  file,
-) => {
-  if (file) {
-    const imageName = `${data.title}${data?.description}`;
-    const path = file?.path;
-    const { secure_url } = await sendImageToCloudinary(imageName, path);
-    data.thumbnail = secure_url as string;
-  }
-  const job = await Job.findOne({ _id: jobId, postedBy: userId });
-  if (!job) {
-    throw new AppError(
-      httpStatus.NOT_FOUND,
-      'Job not found or permission denied',
-    );
-  }
-  data.approvedByAdmin = false;
-  const result = await Job.findByIdAndUpdate(jobId, data, {
-    new: true,
-    runValidators: true,
-  });
-  return result;
-};
+// const updateJob = async (
+//   jobId: string,
+//   userId: string,
+//   data: Partial<IJob>,
+//   file,
+// ) => {
+//   if (file) {
+//     const imageName = `${data.title}${data?.description}`;
+//     const path = file?.path;
+//     const { secure_url } = await sendImageToCloudinary(imageName, path);
+//     data.thumbnail = secure_url as string;
+//   }
+//   const job = await Job.findOne({ _id: jobId, postedBy: userId });
+//   if (!job) {
+//     throw new AppError(
+//       httpStatus.NOT_FOUND,
+//       'Job not found or permission denied',
+//     );
+//   }
+//   data.approvedByAdmin = false;
+//   const result = await Job.findByIdAndUpdate(jobId, data, {
+//     new: true,
+//     runValidators: true,
+//   });
+//   return result;
+// };
 // const getWorkplaceJobs = async (userId) => {
 //   const jobs = await Job.find({
 //     approvedByAdmin: true, // শুধু approved job গুলো

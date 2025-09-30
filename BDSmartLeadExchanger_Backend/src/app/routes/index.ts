@@ -6,6 +6,7 @@ import { DepositRoutes } from '../modules/deposit/deposit.route';
 import { jobRoutes } from '../modules/job/job.route';
 import { JobSubmissionRoutes } from '../modules/JobSubmission/JobSubmission.route';
 import { ReportRoutes } from '../modules/report/report.route';
+import { StatsRoutes } from '../modules/stats/stats.route';
 import { UserRoutes } from '../modules/user/user.route';
 
 const router = Router();
@@ -42,6 +43,10 @@ const moduleRoutes = [
   {
     path: '/dashboard',
     route: dashboardRouter,
+  },
+  {
+    path: '/home',
+    route: StatsRoutes,
   },
 ];
 

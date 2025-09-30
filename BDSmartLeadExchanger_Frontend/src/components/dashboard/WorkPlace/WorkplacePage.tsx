@@ -279,7 +279,10 @@ const Workplace = () => {
               {selectedJob?.createdAt
                 ? new Date(selectedJob?.createdAt).toLocaleString()
                 : "N/A"}{" "}
-              remaining
+              <p className=" text-lg mt-2 text-black">
+                আমি সততার সাথে নির্দেশনা অনুযায়ী কাজ সম্পন্ন করব, অন্যথায়
+                কর্তৃপক্ষের সিদ্ধান্তে ব্যান বা ব্লক প্রযোজ্য হবে।
+              </p>
             </DialogDescription>
           </DialogHeader>
 

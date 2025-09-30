@@ -35,6 +35,8 @@ import { toast } from "sonner";
 
 const Deposit = () => {
   const [MyDeposit, setMyDeposit] = useState([]);
+  const [activeTable, setActiveTable] = useState("deposit");
+
   const [isLoading, setIsLoading] = useState(false);
   const [Bkash, setBkash] = useState([]);
   const [depositForm, setDepositForm] = useState({
@@ -46,7 +48,6 @@ const Deposit = () => {
   const fetchDeposit = async () => {
     try {
       const res = await getOwndeposit();
-      console.log(res);
       setMyDeposit(res?.data);
     } catch (error) {
       console.error("Error fetching workplace jobs:", error.message);
@@ -113,6 +114,7 @@ const Deposit = () => {
           bkashNumber: "",
         });
         fetchDeposit();
+        setActiveTable("history");
         setIsLoading(false);
       } else {
         setIsLoading(false);
@@ -154,7 +156,12 @@ const Deposit = () => {
 
       {/* Stats Cards */}
 
-      <Tabs defaultValue="deposit" className="w-full">
+      <Tabs
+        defaultValue="deposit"
+        value={activeTable}
+        onValueChange={(val) => setActiveTable(val)}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="deposit" className="flex items-center space-x-2">
             <CreditCard className="h-4 w-4" />

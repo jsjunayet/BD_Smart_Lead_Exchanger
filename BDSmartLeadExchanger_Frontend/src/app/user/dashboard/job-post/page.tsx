@@ -134,10 +134,10 @@ const JobPost = () => {
                   </Label>
                   <Textarea
                     id="tasks"
-                    placeholder={`প্রতিটি ধাপ নতুন লাইনে লিখুন।\nউদাহরণ:\n১. লিঙ্ক কপি করে ওপেন করুন।\n২. টেলিগ্রাম চ্যানেলে জয়েন করুন।\n৩. লিঙ্কে ক্লিক করুন।`}
+                    placeholder={`প্রতিটি ধাপ নতুন লাইনে লিখুন। উদাহরণ:\n1. লিঙ্ক কপি করে ওপেন করুন।\n2. টেলিগ্রাম চ্যানেলে জয়েন করুন।\n3. লিংকে ক্লিক করুন।`}
                     value={jobData.tasks}
                     onChange={(e) => handleInputChange("tasks", e.target.value)}
-                    rows={4}
+                    rows={6}
                     className="w-full resize-none"
                     required
                   />

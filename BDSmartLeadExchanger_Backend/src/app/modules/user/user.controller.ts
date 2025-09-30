@@ -33,7 +33,7 @@ const GetDashboardData = catchAsync(async (req, res) => {
   });
 });
 const GetAllSingleUserForAdmin = catchAsync(async (req, res) => {
-  const id = req.params.id;
+  const id = req.user.id;
   const result = await UserServices.GetAllSingleUserForAdmin(id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -55,7 +55,9 @@ const UserProfileUpdate = catchAsync(async (req, res) => {
 const ApprovedUser = catchAsync(async (req, res) => {
   const id = req.user.userId;
   const userId = req.params.id;
-  const result = await UserServices.ApprovedUser(id, userId);
+  const body = req.body.data;
+  console.log(body);
+  const result = await UserServices.ApprovedUser(id, userId, body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
