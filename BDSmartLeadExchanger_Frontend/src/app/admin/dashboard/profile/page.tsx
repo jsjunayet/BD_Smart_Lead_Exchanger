@@ -1,12 +1,11 @@
 "use client";
-import AdminProfile from "@/components/AdminDashboard/Profile";
+import dynamic from "next/dynamic";
 
-const Profile = () => {
-  return (
-    <div>
-      <AdminProfile />
-    </div>
-  );
-};
+const AdminProfile = dynamic(
+  () => import("@/components/AdminDashboard/Profile"),
+  { ssr: false } // disable server-side rendering
+);
 
-export default Profile;
+export default function ProfilePage() {
+  return <AdminProfile />;
+}
