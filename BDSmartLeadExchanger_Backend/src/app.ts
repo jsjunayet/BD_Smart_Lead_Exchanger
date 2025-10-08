@@ -18,6 +18,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
+      'http://bdsmartleadx.com',
       'https://bd-smart-lead-exchanger.vercel.app',
       'http://localhost:3000',
     ],
