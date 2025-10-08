@@ -87,14 +87,13 @@ interface WorkHistoryItem {
 export const WorkHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [Submission, setSubmission] = useState<WorkHistoryItem | null>(null);
+  const [Submission, setSubmission] = useState<any | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isLoading, setisloading] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const itemsPerPage = 5;
   const [userReports, setUserReports] = useState<{ [key: string]: any }>({});
-  const [selectedReport, setSelectedReport] = useState<any>(null);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -133,7 +132,7 @@ export const WorkHistory = () => {
   };
 
   const filteredData = Submission?.filter(
-    (item) =>
+    (item: any) =>
       item.job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -143,6 +142,7 @@ export const WorkHistory = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData?.slice(startIndex, endIndex);
+  console.log(currentData, "couree");
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -160,7 +160,7 @@ export const WorkHistory = () => {
     }
   };
 
-  const handleReport = async (id) => {
+  const handleReport = async (id: string) => {
     if (!reportReason.trim()) {
       toast.error("Please provide a reason for the report");
       return;
@@ -198,7 +198,7 @@ export const WorkHistory = () => {
       console.log(res);
       setSubmission(res?.data);
     } catch (error) {
-      console.error("Error fetching workplace jobs:", error.message);
+      console.error("Error fetching workplace jobs");
     }
   };
   useEffect(() => {
@@ -222,8 +222,8 @@ export const WorkHistory = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Work History</span>
+          <CardTitle className="md:flex  items-center justify-between">
+            <span className=" mb-2 md:mb-0">Work History</span>
             <div className="flex items-center space-x-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -243,7 +243,7 @@ export const WorkHistory = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Job Details</TableHead>
-                  <TableHead>User Info</TableHead>
+                  <TableHead>Job Post Creator Info</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Proof Screenshots</TableHead>
                   <TableHead>Submitted</TableHead>
@@ -251,7 +251,7 @@ export const WorkHistory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentData?.map((item) => (
+                {currentData?.map((item: any) => (
                   <TableRow key={item._id}>
                     <TableCell>
                       <div className="space-y-1">
@@ -267,19 +267,21 @@ export const WorkHistory = () => {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={item.user.image} />
+                          <AvatarImage src={item.job.postedBy.ProfileImage} />
                           <AvatarFallback>
-                            {item.user.name
+                            {item.job.postedBy.name
                               .split(" ")
-                              .map((n) => n[0])
+                              .map((n: any) => n[0])
                               .join("")
                               .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{item.user.name}</div>
+                          <div className="font-medium">
+                            {item.job.postedBy.name}
+                          </div>
                           <div className="text-sm text-muted-foreground">
-                            @{item.user.userName}
+                            {item.job.postedBy.email}
                           </div>
                         </div>
                       </div>
@@ -339,12 +341,12 @@ export const WorkHistory = () => {
                               View
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl">
+                          <DialogContent className="max-w-4xl  h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                             <DialogHeader>
                               <DialogTitle>Submission Details</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-6">
-                              <div className="grid grid-cols-2 gap-6">
+                              <div className="grid  grid-cols-1 gap-6">
                                 <Card>
                                   <CardHeader>
                                     <CardTitle className="text-lg">
@@ -382,7 +384,7 @@ export const WorkHistory = () => {
                                       </span>
                                       <ul className="text-muted-foreground list-disc list-inside">
                                         {item.job.screenshotTitles.map(
-                                          (title, index) => (
+                                          (title: any, index: any) => (
                                             <li key={index}>{title}</li>
                                           )
                                         )}
@@ -400,10 +402,10 @@ export const WorkHistory = () => {
                                   <CardContent className="space-y-2">
                                     <div>
                                       <span className="font-medium">
-                                        Submission ID:
+                                        Submission Email:
                                       </span>
                                       <p className="text-muted-foreground font-mono">
-                                        {item._id}
+                                        {item.user.email}
                                       </p>
                                     </div>
                                     <div>

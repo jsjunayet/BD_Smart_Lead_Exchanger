@@ -1,6 +1,7 @@
 "use client";
 import { CheckCircle, Play, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 const FeaturesSection = () => {
@@ -17,7 +18,7 @@ const FeaturesSection = () => {
   return (
     <>
       {/* Main Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+      <section className="md:py-20 py-10 bg-gradient-to-br from-gray-50 to-white md:px-0 px-2">
         <div className="max-w-6xl mx-auto  ">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Features */}
@@ -49,9 +50,11 @@ const FeaturesSection = () => {
               </div>
 
               <div className="pt-6">
-                <button className="bg-gradient-to-r from-blue-600 to-green-600  text-white px-8 py-4 rounded-xl font-semibold hover:from-red-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                  Register Now
-                </button>
+                <Link href={"/signup"}>
+                  <button className="bg-gradient-to-r from-blue-600 to-green-600  text-white px-8 py-4 rounded-xl font-semibold hover:from-red-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                    Register Now
+                  </button>
+                </Link>
               </div>
             </div>
 

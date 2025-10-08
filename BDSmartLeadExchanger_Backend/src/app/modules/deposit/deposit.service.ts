@@ -30,12 +30,10 @@ const getAllDepositsForAdmin = async () => {
 // 4. Admin approve/reject deposit
 const updateDepositStatus = async (
   depositId: string,
-  status: 'approved' | 'rejected',
+  status: { status: 'approved' | 'rejected'; message?: string },
 ) => {
   const deposit = await Deposit.findById(depositId);
-  console.log(status, 'this');
   if (!deposit) throw new AppError(httpStatus.NOT_FOUND, 'Deposit not found');
-  console.log(deposit, status);
   if (status.status === 'approved') {
     deposit.status = 'approved';
     deposit.message = status.message || 'verified Payment';
@@ -43,8 +41,6 @@ const updateDepositStatus = async (
     // Update user balance
     const user = await User.findById(deposit.user);
     if (!user) throw new AppError(httpStatus.NOT_FOUND, 'User not found');
-    console.log(user);
-
     user.wallet = (user.wallet || 0) + 1;
     await user.save();
   } else if (status.status === 'rejected') {

@@ -2,7 +2,6 @@ import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 import AppError from '../../errors/AppError';
 import { sendEmail } from '../../utils/sendEmail';
-import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import { User } from '../Auth/auth.model';
 import { Job } from '../job/job.model';
 import { JobSubmission } from '../JobSubmission/JobSubmission.model';
@@ -80,18 +79,7 @@ const ALLOWED_UPDATE_FIELDS = [
   'publisherId',
 ];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const UserProfileUpdate = async (id: string, body: Partial<any>, file) => {
-  // Pick only allowed fields
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (file) {
-    const imageName = `${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
-    const path = file?.path;
-    const { secure_url } = await sendImageToCloudinary(imageName, path);
-    body.ProfileImage = secure_url as string;
-  }
-  if (!body || Object.keys(body).length === 0) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'No data provided to update');
-  }
+const UserProfileUpdate = async (id: string, body: Partial<any>) => {
   const user = await User.findById(id);
 
   if (!user) {
@@ -132,7 +120,11 @@ const UserProfileUpdate = async (id: string, body: Partial<any>, file) => {
   return result;
 };
 // Approve user
-const ApprovedUser = async (adminId: string, userId: string, action) => {
+const ApprovedUser = async (
+  adminId: string,
+  userId: string,
+  action: 'approved' | 'rejected',
+) => {
   // 1. Check if admin exists
   const admin = await User.findById(adminId);
 
@@ -163,25 +155,43 @@ const ApprovedUser = async (adminId: string, userId: string, action) => {
     throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked!');
   }
 
-  if (user.isApproved) {
+  if (user.isApproved && action === 'approved') {
     throw new AppError(httpStatus.FORBIDDEN, 'This user is already approved!');
   }
 
-  // 3. Approve the user
+  // 3. Update user approval/rejection
+  const isApproved = action === 'approved';
   const result = await User.findByIdAndUpdate(
     userId,
-    { isApproved: action === 'approved' },
+    { isApproved: isApproved },
     { new: true },
   );
-  const html = `
-    <h2>Hello ${user.name},</h2>
-    <p>Your account has been approved by Admin. 🎉</p>
-    <p>Now you can login using your email & password.</p>
-  `;
 
-  await sendEmail(user.email, html, 'Your Account Approved');
+  // 4. Send different email based on action
+  let html = '';
+  let subject = '';
+
+  if (action === 'approved') {
+    html = `
+      <h2>Hello ${user.name},</h2>
+      <p>Your account has been approved by Admin. 🎉</p>
+      <p>Now you can login using your email & password.</p>
+    `;
+    subject = 'Your Account Approved';
+  } else if (action === 'rejected') {
+    html = `
+      <h2>Hello ${user.name},</h2>
+      <p>We're sorry! Your account has been rejected by Admin. ❌</p>
+      <p>Please contact support for further assistance.</p>
+    `;
+    subject = 'Your Account Rejected';
+  }
+
+  await sendEmail(user.email, html, subject);
+
   return result;
 };
+
 const userRoleUpdate = async (
   adminId: string,
   userId: string,
@@ -229,6 +239,13 @@ const userRoleUpdate = async (
   );
   return result;
 };
+export const userHomeUpdate = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
+  user.home = !user.home;
+  await user.save();
+};
+
 // Delete user
 const DeletedUser = async (adminId: string, userId: string) => {
   const admin = await User.findById(adminId);
@@ -254,7 +271,10 @@ const DeletedUser = async (adminId: string, userId: string) => {
   const result = await User.findByIdAndDelete(userId);
   return result;
 };
-
+const GetAllUserForHome = async () => {
+  const users = await User.find({ home: true });
+  return users;
+};
 export const UserServices = {
   GetAllUser,
   GetAllSingleUser,
@@ -264,4 +284,6 @@ export const UserServices = {
   DeletedUser,
   GetDashboardData,
   userRoleUpdate,
+  GetAllUserForHome,
+  userHomeUpdate,
 };

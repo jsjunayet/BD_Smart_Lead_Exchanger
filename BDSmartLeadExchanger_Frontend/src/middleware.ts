@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSingleuser } from "./services/userService";
 
-export async function middleware(req) {
+export async function middleware(req: NextRequest) {
   // const token = await getCurrentUser();
   const { data: token } = await getSingleuser();
   // console.log(data, "datajfdsalfjd");

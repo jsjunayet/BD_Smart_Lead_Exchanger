@@ -4,7 +4,7 @@ export * from "./user";
 
 export type PostStatus = "pending" | "approved" | "rejected";
 
-export type UserRole = "ADMIN" | "USER";
+export type UserRole = "user" | "admin" | "superAdmin";
 
 export type UserStatus = "active" | "suspended" | "banned";
 

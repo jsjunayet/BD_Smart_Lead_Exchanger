@@ -6,4 +6,5 @@ export interface IJobSubmission extends Document {
   proofScreenshots: string[];
   status: 'submitted' | 'approved' | 'rejected';
   submittedAt: Date;
+  createdAt: Date;
 }

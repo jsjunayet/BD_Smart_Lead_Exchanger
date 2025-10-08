@@ -2,15 +2,9 @@
 import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 export const getAllStats = async () => {
-  const token = (await cookies()).get("accessToken")!.value;
-
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/home`, {
       method: "GET",
-      headers: {
-        Authorization: `${token}`,
-        "Content-Type": "application/json",
-      },
       next: {
         tags: ["Stats"],
       },

@@ -12,6 +12,15 @@ const GetAllUser = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const GetAllUserForHome = catchAsync(async (req, res) => {
+  const result = await UserServices.GetAllUserForHome();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'All user Retrived Succesfully!',
+    data: result,
+  });
+});
 const GetAllSingleUser = catchAsync(async (req, res) => {
   const id = req.user.userId;
   const result = await UserServices.GetAllSingleUser(id);
@@ -44,7 +53,7 @@ const GetAllSingleUserForAdmin = catchAsync(async (req, res) => {
 });
 const UserProfileUpdate = catchAsync(async (req, res) => {
   const id = req.user.userId;
-  const result = await UserServices.UserProfileUpdate(id, req.body, req.file);
+  const result = await UserServices.UserProfileUpdate(id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -77,6 +86,16 @@ const userRoleUpdate = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const userHomeUpdate = catchAsync(async (req, res) => {
+  const userId = req.params.id;
+  const result = await UserServices.userHomeUpdate(userId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Sucessfully User Home Page added!',
+    data: result,
+  });
+});
 const DeletedUser = catchAsync(async (req, res) => {
   const id = req.user.userId;
   const userId = req.params.id;
@@ -98,4 +117,6 @@ export const UserController = {
   GetAllSingleUserForAdmin,
   GetDashboardData,
   userRoleUpdate,
+  userHomeUpdate,
+  GetAllUserForHome,
 };

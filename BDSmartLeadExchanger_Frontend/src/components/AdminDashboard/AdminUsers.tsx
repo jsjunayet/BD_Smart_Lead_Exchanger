@@ -33,15 +33,16 @@ import {
   Approveduser,
   deleteduser,
   getAlluser,
+  userHomeUpdate,
   userRoleUpate,
 } from "@/services/userService";
-import { User } from "@/types";
 import {
   Check,
   Crown,
   Download,
   Eye,
   Filter,
+  Home,
   Trash2,
   User as UserIcon,
   X,
@@ -56,8 +57,8 @@ import { ScreenshotViewer } from "../ui/screenshot-viewer";
 export default function AdminUsers() {
   const { user } = useUser();
   const currentUser = user;
-  const [users, setUsers] = useState<User[]>();
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<any[]>();
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,21 +104,21 @@ export default function AdminUsers() {
     });
   }, [users, searchTerm, statusFilter, roleFilter]);
 
-  const totalPages = Math?.ceil(filteredUsers?.length / itemsPerPage);
+  const totalPages = Math.ceil((filteredUsers?.length ?? 0) / itemsPerPage);
   const paginatedUsers = filteredUsers?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   // Stats calculations
-  const stats = useMemo(() => {
-    const totalUsers = users?.length;
-    const activeUsers = users?.filter((u) => u.status && u.isApproved).length;
-    const pendingUsers = users?.filter((u) => !u.isApproved).length;
-    const adminUsers = users?.filter((u) => u.role === "admin").length;
+  // const stats = useMemo(() => {
+  //   const totalUsers = users?.length;
+  //   const activeUsers = users?.filter((u) => u.status && u.isApproved).length;
+  //   const pendingUsers = users?.filter((u) => !u.isApproved).length;
+  //   const adminUsers = users?.filter((u) => u.role === "admin").length;
 
-    return { totalUsers, activeUsers, pendingUsers, adminUsers };
-  }, [users]);
+  //   return { totalUsers, activeUsers, pendingUsers, adminUsers };
+  // }, [users]);
 
   const handleRoleChange = async (
     userId: string,
@@ -142,7 +143,7 @@ export default function AdminUsers() {
     }
   };
 
-  const getStatusBadge = (user: User) => {
+  const getStatusBadge = (user: any) => {
     if (!user.isApproved) return <Badge variant="secondary">Pending</Badge>;
     if (!user.status) return <Badge variant="destructive">Inactive</Badge>;
     return <Badge className="bg-success text-success-foreground">Active</Badge>;
@@ -161,6 +162,18 @@ export default function AdminUsers() {
       fetchUsers();
     } else {
       toast.error(`Failed to ${action} user`);
+      setIsLoading(false);
+    }
+  };
+  const handleUpdate = async (userId: string) => {
+    const res = await userHomeUpdate(userId);
+    console.log(res);
+    if (res.success) {
+      toast.success(`${res.message}`);
+      setIsLoading(false);
+      fetchUsers();
+    } else {
+      toast.error(`Failed to Update Home`);
       setIsLoading(false);
     }
   };
@@ -214,7 +227,7 @@ export default function AdminUsers() {
       <Card className="bg-gradient-card shadow-card border-0">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="flex flex-1 gap-4 items-center">
+            <div className="md:flex flex-1 gap-4 items-center md:space-y-0 space-y-2">
               <SearchInput
                 placeholder="Search users by name, email, or username..."
                 value={searchTerm}
@@ -222,7 +235,7 @@ export default function AdminUsers() {
               />
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="md:w-[180px] w-full">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -235,7 +248,7 @@ export default function AdminUsers() {
               </Select>
 
               <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="md:w-[180px] w-full">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Filter by role" />
                 </SelectTrigger>
@@ -265,7 +278,7 @@ export default function AdminUsers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedUsers?.map((user) => (
+              {paginatedUsers?.map((user: any) => (
                 <TableRow key={user._id} className="hover:bg-muted/20">
                   <TableCell>
                     <div className="flex items-center space-x-3">
@@ -495,7 +508,7 @@ export default function AdminUsers() {
                               {showViewer && (
                                 <ScreenshotViewer
                                   screenshots={[selectedUser.image]}
-                                  titles={"Profile Image"}
+                                  titles={["Profile Image"]}
                                   professionalName={
                                     selectedUser.email || selectedUser.name
                                   }
@@ -503,7 +516,6 @@ export default function AdminUsers() {
                                     selectedUser.image || "/placeholder.svg"
                                   }
                                   maxPreview={4}
-                                  onClose={() => setShowViewer(false)} // make sure your viewer supports closing
                                 />
                               )}
                               {user?.isApproved === false && (
@@ -590,6 +602,24 @@ export default function AdminUsers() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={
+                          // Rule:
+                          // 1. Admin cannot delete another admin
+                          (currentUser?.role === "admin" &&
+                            user?.role === "admin") ||
+                          user.role === "user"
+                        }
+                        onClick={() => handleUpdate(user._id)}
+                      >
+                        <Home
+                          className={`h-5 w-5 transition-colors ${
+                            user.home ? "text-green-500" : "text-gray-400"
+                          }`}
+                        />{" "}
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -603,7 +633,7 @@ export default function AdminUsers() {
       <DataTablePagination
         currentPage={currentPage}
         totalPages={totalPages}
-        totalItems={filteredUsers?.length}
+        totalItems={filteredUsers?.length ?? 0}
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
         onItemsPerPageChange={(newItemsPerPage) => {

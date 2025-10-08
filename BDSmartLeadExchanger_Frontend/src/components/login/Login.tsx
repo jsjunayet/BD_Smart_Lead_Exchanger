@@ -16,12 +16,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+const initialFormData = {
+  identifier: "",
+  password: "",
+};
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    identifier: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState(initialFormData);
   const router = useRouter();
   const [loading, setloading] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +32,7 @@ const Login = () => {
       const res = await loginUser(formData);
       if (res?.success) {
         toast.success(res.message);
-        setFormData({});
+        setFormData(initialFormData);
         setloading(false);
         const session = await getCurrentUser();
         console.log(session);

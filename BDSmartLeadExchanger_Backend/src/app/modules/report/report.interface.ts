@@ -6,6 +6,6 @@ export interface IReport {
   reason: string; // why user reported
   status: 'pending' | 'resolved' | 'rejected'; // admin review status
   adminNotes: string;
-  createdAt?: Date;
+  createdAt: Date;
   updatedAt?: Date;
 }

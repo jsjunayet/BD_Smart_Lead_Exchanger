@@ -41,7 +41,7 @@ const faqs = [
 
 export const FAQSection = () => {
   return (
-    <section className="py-12 bg-muted/30">
+    <section className="md:py-12 py-10 bg-muted/30  md:px-0 px-2">
       <div className="max-w-6xl mx-auto ">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-success">
           Help & Information Hub

@@ -1,4 +1,5 @@
 "use client";
+import { uploadImageToCloudinary } from "@/components/share/clodinaryUpload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,58 +10,63 @@ import { createjobs } from "@/services/jobService";
 import { AlertCircle, CheckCircle, Clock, PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-
+const initialJobData = {
+  title: "",
+  tasks: "",
+  jobUrl: "",
+  screenshot1Title: "",
+  screenshot1File: null as File | null,
+  screenshot2Title: "",
+  screenshot2File: null as File | null,
+  screenshot3Title: "",
+  screenshot3File: null as File | null,
+  screenshot4Title: "",
+  screenshot4File: null as File | null,
+  thumbnail: null as File | null,
+};
 const JobPost = () => {
   const [loading, setloading] = useState(false);
-  const [jobData, setJobData] = useState({
-    title: "",
-    tasks: "",
-    jobUrl: "",
-    screenshot1Title: "",
-    screenshot1File: null as File | null,
-    screenshot2Title: "",
-    screenshot2File: null as File | null,
-    screenshot3Title: "",
-    screenshot3File: null as File | null,
-    screenshot4Title: "",
-    screenshot4File: null as File | null,
-    thumbnail: null as File | null,
-  });
-
+  const [jobData, setJobData] = useState(initialJobData);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const jobPayload = {
-      title: jobData.title,
-      description: jobData.tasks,
-      jobUrl: jobData.jobUrl,
-      screenshotTitles: [
-        jobData.screenshot1Title,
-        jobData.screenshot2Title,
-        jobData.screenshot3Title,
-        jobData.screenshot4Title,
-      ].filter(Boolean),
-    };
 
-    const formData = new FormData();
-    if (jobData.thumbnail) {
-      formData.append("file", jobData.thumbnail);
-    }
-    formData.append("data", JSON.stringify(jobPayload));
     try {
       setloading(true);
-      const res = await createjobs(formData);
+
+      let thumbnailUrl = "";
+      if (jobData.thumbnail) {
+        // ✅ Upload to Cloudinary
+        const uploadRes = await uploadImageToCloudinary(jobData.thumbnail);
+        thumbnailUrl = uploadRes;
+      }
+
+      // ✅ Build job payload
+      const jobPayload = {
+        title: jobData.title,
+        description: jobData.tasks,
+        jobUrl: jobData.jobUrl,
+        thumbnail: thumbnailUrl, // 👈 send URL instead of file
+        screenshotTitles: [
+          jobData.screenshot1Title,
+          jobData.screenshot2Title,
+          jobData.screenshot3Title,
+          jobData.screenshot4Title,
+        ].filter(Boolean),
+      };
+
+      const res = await createjobs(jobPayload);
       console.log(res);
       if (res?.success) {
         toast.success(res.message);
         setloading(false);
-        setJobData({});
+        setJobData(initialJobData);
       } else {
         res.errorSources.forEach((err: any) => {
           toast(err.message); // or use a custom toast component
         });
         setloading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       setloading(false);
       toast(error.response?.data?.message || "Job Create failed!");
     }

@@ -25,7 +25,8 @@ export const getAllPaymentSetup = async () => {
 };
 
 // create post
-export const createPaymentSetup = async (formdata): Promise<any> => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const createPaymentSetup = async (formdata: any): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
@@ -45,7 +46,11 @@ export const createPaymentSetup = async (formdata): Promise<any> => {
   }
 };
 
-export const UpdatePaymentSetup = async (id: string, data): Promise<any> => {
+export const UpdatePaymentSetup = async (
+  id: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any
+): Promise<any> => {
   console.log(data, id, "servere");
   const token = (await cookies()).get("accessToken")!.value;
 

@@ -83,9 +83,9 @@ const Workplace = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [selectedJob, setSelectedJob] = useState<WorkplaceJob | null>(null);
+  const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [workplaceJobs, setworkplaceJobs] = useState<WorkplaceJob[]>([]);
+  const [workplaceJobs, setworkplaceJobs] = useState<any[]>([]);
   const filteredJobs = workplaceJobs?.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -101,7 +101,7 @@ const Workplace = () => {
         const res = await getWorkPlace();
         setworkplaceJobs(res?.data);
       } catch (error) {
-        console.error("Error fetching workplace jobs:", error.message);
+        console.error("Error fetching workplace jobs");
       }
     };
 
@@ -129,7 +129,7 @@ const Workplace = () => {
     }
   };
 
-  const handleJobClick = (job: WorkplaceJob) => {
+  const handleJobClick = (job: any) => {
     setSelectedJob(job);
     setIsDialogOpen(true);
   };
@@ -137,9 +137,11 @@ const Workplace = () => {
   const handleAcceptJob = () => {
     console.log(selectedJob);
     if (selectedJob) {
-      router.push(`/user/dashboard/workplace/${selectedJob?._id}`, {
-        state: { job: selectedJob },
-      });
+      router.push(
+        `/user/dashboard/workplace/${selectedJob?._id}?job=${encodeURIComponent(
+          JSON.stringify(selectedJob)
+        )}`
+      );
     }
     setIsDialogOpen(false);
   };
@@ -215,7 +217,7 @@ const Workplace = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredJobs?.map((job) => (
+                {filteredJobs?.map((job: any) => (
                   <tr
                     key={job.id}
                     className="border-b hover:bg-muted/50 cursor-pointer"
@@ -227,7 +229,7 @@ const Workplace = () => {
                           <AvatarFallback>
                             {job?.postedBy.name
                               ?.split(" ")
-                              .map((n) => n[0])
+                              .map((n: any) => n[0])
                               .join("")
                               .toUpperCase()}
                           </AvatarFallback>

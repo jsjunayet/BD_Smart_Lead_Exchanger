@@ -1,7 +1,8 @@
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
+import { User } from '../Auth/auth.model';
 import { JobSubmission } from '../JobSubmission/JobSubmission.model';
+import { IJob } from './job.interface';
 import { Job } from './job.model';
 
 // const jobPost = async (
@@ -50,13 +51,6 @@ import { Job } from './job.model';
 //   return job;
 // };
 // Utility: sanitize public_id
-function sanitizePublicId(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/\s+/g, '-') // space → dash
-    .replace(/[^a-z0-9-_]/g, '') // remove special chars
-    .substring(0, 50); // optional max length
-}
 
 // Job Create
 const jobPost = async (
@@ -68,15 +62,7 @@ const jobPost = async (
     screenshotTitles: string[];
     thumbnail?: string;
   },
-  file?: Express.Multer.File,
 ) => {
-  if (file) {
-    const imageName = sanitizePublicId(data.title); // ✅ only title
-    const path = file.path;
-    const { secure_url } = await sendImageToCloudinary(imageName, path);
-    data.thumbnail = secure_url as string;
-  }
-
   const existing = await Job.findOne({ postedBy: userId });
   if (existing) {
     throw new AppError(
@@ -111,15 +97,7 @@ const updateJob = async (
   jobId: string,
   userId: string,
   data: Partial<IJob>,
-  file?: Express.Multer.File,
 ) => {
-  if (file) {
-    const imageName = sanitizePublicId(data.title || 'job-thumbnail'); // ✅ safe
-    const path = file.path;
-    const { secure_url } = await sendImageToCloudinary(imageName, path);
-    data.thumbnail = secure_url as string;
-  }
-
   const job = await Job.findOne({ _id: jobId, postedBy: userId });
   if (!job) {
     throw new AppError(
@@ -156,25 +134,23 @@ const approveOrrejectJob = async (
   return result;
 };
 const getJobsByOwner = async (ownerId: string) => {
-  const jobs = await Job.aggregate([
-    {
-      $match: { postedBy: new mongoose.Types.ObjectId(ownerId) }, // owner filter
-    },
-    {
-      $lookup: {
-        from: 'jobsubmissions', // JobSubmission collection name
-        localField: '_id', // Job._id
-        foreignField: 'job', // JobSubmission.job
-        as: 'submissions',
-      },
-    },
-    {
-      $sort: { createdAt: -1 },
-    },
-  ]);
+  const jobs = await Job.find({ postedBy: ownerId })
+    .sort({ createdAt: -1 })
+    .lean();
 
-  return jobs;
+  const jobsWithSubmissions = await Promise.all(
+    jobs.map(async (job) => {
+      const submissions = await JobSubmission.find({ job: job._id })
+        .populate('user', 'name email ProfileImage') // শুধুমাত্র name, email, ProfileImage
+        .lean();
+
+      return { ...job, submissions };
+    }),
+  );
+
+  return jobsWithSubmissions;
 };
+
 // 3. Get all deposits for admin
 // For Admin (see all jobs + their submissions)
 const getAllJobForAdmin = async () => {
@@ -187,7 +163,8 @@ const getAllJobForAdmin = async () => {
       .populate('user', 'name email')
       .lean();
 
-    job.submissions = submissions;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (job as any).submissions = submissions;
   }
 
   return jobs;
@@ -248,7 +225,6 @@ const getWorkplaceJobs = async (userId: string) => {
     user: userId,
     submittedAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
   }).distinct('job');
-  console.log(completedJobs);
   const jobs = await Job.find({
     approvedByAdmin: true,
     _id: { $nin: completedJobs },

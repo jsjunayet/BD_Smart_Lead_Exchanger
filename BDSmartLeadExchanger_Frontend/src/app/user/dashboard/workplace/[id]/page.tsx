@@ -1,12 +1,11 @@
 import SinglePage from "@/components/JobDetials/JobDetails";
 
-const WorkplaceDetialPage = async ({ params }) => {
-  const resolvedParams = await params;
+const WorkplaceDetailPage = async ({ params }: any) => {
   return (
     <div>
-      <SinglePage jobId={resolvedParams.id} />
+      <SinglePage jobId={params.id} />
     </div>
   );
 };
 
-export default WorkplaceDetialPage;
+export default WorkplaceDetailPage;

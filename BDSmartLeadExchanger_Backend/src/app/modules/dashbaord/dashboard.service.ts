@@ -234,7 +234,7 @@ export const getRecentActivities = async (
       });
     });
 
-    console.log('📊 Total activities before sort:', recentActivities.length); // Debug log
+    console.log('📊 Total activities before sort:', recentActivities.length);
 
     // Sort all activities by time and return limited results
     const sortedActivities = recentActivities

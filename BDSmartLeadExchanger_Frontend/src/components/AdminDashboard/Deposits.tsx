@@ -68,7 +68,7 @@ const DepositManagement = () => {
 
   const filteredDeposits = AllDeposites?.filter(
     (deposit) =>
-      deposit.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deposit?.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       deposit.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       deposit.bkashNumber.includes(searchTerm)
   );
@@ -169,7 +169,7 @@ const DepositManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDeposits?.map((deposit) => (
+                {filteredDeposits?.map((deposit: any) => (
                   <TableRow key={deposit._id}>
                     <TableCell>{deposit.user?.name}</TableCell>
                     <TableCell>{deposit.user?.email}</TableCell>
@@ -212,7 +212,7 @@ const DepositManagement = () => {
                                     Amount
                                   </label>
                                   <p className="text-sm text-muted-foreground">
-                                    ${deposit.amount}
+                                    ৳{deposit.amount}
                                   </p>
                                 </div>
                                 <div>

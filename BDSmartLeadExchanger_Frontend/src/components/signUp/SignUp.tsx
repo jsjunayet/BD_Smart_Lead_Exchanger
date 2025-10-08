@@ -16,35 +16,34 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-
+import { uploadImageToCloudinary } from "../share/clodinaryUpload";
+const initialFormData = {
+  name: "",
+  userName: "",
+  email: "",
+  phoneNumber: "",
+  country: "",
+  city: "",
+  affiliateNetworkName: "",
+  publisherId: "",
+  password: "",
+  confirmPassword: "",
+  address: "",
+  teamsId: "",
+  image: "", // store uploaded image URL
+  file: null as File | null, // temporary for upload
+  agreeToTerms: false,
+};
 const Signup = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: "",
-    userName: "",
-    email: "",
-    phoneNumber: "",
-    country: "",
-    city: "",
-    affiliateNetworkName: "",
-    publisherId: "",
-    password: "",
-    confirmPassword: "",
-    address: "",
-    // state: "",
-    // zipCode: "",
-    teamsId: "",
-    image: null as File | null, // image field
-    agreeToTerms: false,
-  });
+  const [formData, setFormData] = useState(initialFormData);
+
   const [loading, setloading] = useState(false);
 
-  const handleInputChange = (
-    field: string,
-    value: string | boolean | File | null
-  ) => {
+  const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -52,22 +51,36 @@ const Signup = () => {
       toast("Passwords do not match!");
       return;
     }
-
+    if (!formData.file) {
+      toast.error("Please upload an image file.");
+      return;
+    }
     if (!formData.agreeToTerms) {
       toast("You must agree to terms.");
       return;
     }
 
     try {
-      console.log(formData);
       setloading(true);
-      const res = await SignUpUser(formData);
+      let imageUrl = formData.image;
+
+      // ✅ Step 1: Upload image to Cloudinary if new file selected
+      if (formData.file) {
+        imageUrl = await uploadImageToCloudinary(formData.file);
+      }
+
+      // ✅ Step 2: Prepare final signup data (with image URL)
+      const finalData = {
+        ...formData,
+        image: imageUrl,
+      };
+      const res = await SignUpUser(finalData);
       console.log(res);
       if (res?.success) {
         toast.success(res.message);
         router.push("/login");
         setloading(false);
-        setFormData({});
+        setFormData(initialFormData);
       } else {
         toast.error(res.message);
         setloading(false);

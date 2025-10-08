@@ -65,8 +65,8 @@ const About = () => {
                 </span>
               </h3>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                We're more than just a platform — we're your growth partner. Our
-                services include:
+                We&apos;re more than just a platform — we&apos;re your growth
+                partner. Our services include:
               </p>
             </div>
 
@@ -182,7 +182,7 @@ const About = () => {
                 </span>
               </h3>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                We're committed to building trust, delivering value, and
+                We&apos;re committed to building trust, delivering value, and
                 creating success stories. That means:
               </p>
             </div>

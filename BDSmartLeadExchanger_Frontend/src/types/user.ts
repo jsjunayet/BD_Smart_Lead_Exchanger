@@ -1,5 +1,4 @@
-import { PostStatus } from "@/components/dashboard/PostCard";
-import { Comment } from ".";
+import { Comment, PostStatus } from ".";
 
 export interface IUser {
   id: string;
@@ -12,7 +11,7 @@ export interface IUser {
   isPremium: boolean;
 }
 
-type UserRole = "USER" | "ADMIN";
+type UserRole = "user" | "admin" | "superAdmin";
 
 export interface Post {
   id: string;

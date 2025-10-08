@@ -81,7 +81,7 @@ export default function AdminPaymentSetup() {
         toast("Payment Rate Created");
         setloading(false);
       }
-      setFormData({ type: "", rate: 0, number: "" });
+      setFormData({ type: "", rate: "0", number: "" });
       setEditingRate(null);
       setIsDialogOpen(false);
       fetchPaymentRates();

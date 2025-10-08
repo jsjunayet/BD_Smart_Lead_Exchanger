@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-8 sm:py-12">
+    <footer className="bg-gray-900 text-white py-8 sm:py-12  md:px-0 px-2">
       <div className="max-w-6xl mx-auto ">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-1 sm:col-span-2 md:col-span-1">

@@ -6,8 +6,8 @@ export const sendEmail = async (to: string, html: string, subject: string) => {
     port: 587,
     secure: false,
     auth: {
-      user: 'junayetshiblu0@gmail.com',
-      pass: 'noyj xebx ehmu daqz',
+      user: 'bdsmartleadexchanger@gmail.com',
+      pass: 'jlwl kgpe tyvn mytn',
     },
     tls: {
       rejectUnauthorized: false,
@@ -15,7 +15,7 @@ export const sendEmail = async (to: string, html: string, subject: string) => {
   });
 
   const mailOptions = {
-    from: '"BdSmartLeadExchange" <junayetshiblu0@gmail.com>',
+    from: '"BdSmartLeadExchanger" <bdsmartleadexchanger@gmail.com>',
     to,
     subject,
     html,

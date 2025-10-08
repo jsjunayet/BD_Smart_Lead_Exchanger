@@ -1,8 +1,9 @@
 import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
+import { IReport } from './report.interface';
 import { Report } from './report.model';
 
-const createReport = async (userId: string, body) => {
+const createReport = async (userId: string, body: IReport) => {
   const { submission, reason } = body;
   const result = await Report.create({
     user: userId, // from auth middleware
@@ -28,7 +29,10 @@ const getAllReports = async () => {
   return result;
 };
 
-const updateReportStatus = async (reportId: string, payload) => {
+const updateReportStatus = async (
+  reportId: string,
+  payload: Partial<IReport>,
+) => {
   const updatedReport = await Report.findByIdAndUpdate(
     reportId,
     { status: payload.status, adminNotes: payload.adminNotes },

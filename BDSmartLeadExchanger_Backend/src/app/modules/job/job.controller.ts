@@ -5,11 +5,11 @@ import { jobService } from './job.service';
 
 const jobPost = catchAsync(async (req, res) => {
   const id = req.user.userId;
-  const result = await jobService.jobPost(id, req.body, req.file);
+  const result = await jobService.jobPost(id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Deposit Create Succesfully!',
+    message: 'Job Post Create Succesfully!',
     data: result,
   });
 });
@@ -69,19 +69,20 @@ const getWorkplaceJobs = catchAsync(async (req, res) => {
 //   });
 // });
 const reviewSubmission = catchAsync(async (req, res) => {
-  const id = req.user.userId;
-  const result = await jobService.reviewSubmission(id);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: ' reviewSubmission Succesfully!',
-    data: result,
-  });
+  console.log(req.body);
+  // const id = req.user.userId;
+  // const result = await jobService.;
+  // sendResponse(res, {
+  //   statusCode: httpStatus.OK,
+  //   success: true,
+  //   message: ' reviewSubmission Succesfully!',
+  //   data: result,
+  // });
 });
 const updateJob = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const jobId = req.params.id;
-  const result = await jobService.updateJob(jobId, userId, req.body, req.file);
+  const result = await jobService.updateJob(jobId, userId, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

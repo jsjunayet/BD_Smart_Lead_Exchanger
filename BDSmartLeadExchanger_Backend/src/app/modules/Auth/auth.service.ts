@@ -5,7 +5,6 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../../config';
 import AppError from '../../errors/AppError';
 import { sendEmail } from '../../utils/sendEmail';
-import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import { IUser, TLoginUser } from './auth.interface';
 import { User } from './auth.model';
 import { createToken, verifyToken } from './auth.utils';
@@ -39,13 +38,9 @@ const loginUser = async (payload: TLoginUser) => {
   }
 
   // checking if the password is correct
-  const isPasswordMatched = await User.isPasswordMatched(
-    payload.password,
-    user.password,
-  );
-  if (!isPasswordMatched) {
+  const isPasswordMatched = await user.isPasswordMatched(payload.password);
+  if (!isPasswordMatched)
     throw new AppError(httpStatus.FORBIDDEN, 'Password does not match');
-  }
 
   // create token and send to the client
   const jwtPayload = {
@@ -73,13 +68,7 @@ const loginUser = async (payload: TLoginUser) => {
   };
 };
 
-const signUpUser = async (payload: IUser, file?: Express.Multer.File) => {
-  if (file) {
-    const imageName = `${payload.email}${payload?.name}`;
-    const path = file?.path;
-    const { secure_url } = await sendImageToCloudinary(imageName, path);
-    payload.image = secure_url as string;
-  }
+const signUpUser = async (payload: IUser) => {
   const result = await User.create(payload);
   return result;
 };
@@ -119,8 +108,9 @@ const changePassword = async (
 
   //checking if the password is correct
 
-  if (!(await User.isPasswordMatched(payload.oldPassword, user?.password)))
-    throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched');
+  const isPasswordMatched = await user.isPasswordMatched(payload.oldPassword);
+  if (!isPasswordMatched)
+    throw new AppError(httpStatus.FORBIDDEN, 'Password does not match');
 
   //hash new password
   const newHashedPassword = await bcrypt.hash(

@@ -98,7 +98,7 @@ export const getOwnjobs = async () => {
 };
 // create post
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createjobs = async (formdata): Promise<any> => {
+export const createjobs = async (formdata: any): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
@@ -106,8 +106,9 @@ export const createjobs = async (formdata): Promise<any> => {
       method: "POST",
       headers: {
         Authorization: `${token}`,
+        "Content-Type": "application/json", // ✅ only for JSON
       },
-      body: formdata,
+      body: JSON.stringify(formdata),
     });
     const result = await res.json();
     revalidateTag("jobs");
@@ -118,7 +119,7 @@ export const createjobs = async (formdata): Promise<any> => {
   }
 };
 
-export const Updatejobs = async (id: string, formdata): Promise<any> => {
+export const Updatejobs = async (id: string, formdata: any): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
@@ -128,8 +129,9 @@ export const Updatejobs = async (id: string, formdata): Promise<any> => {
         method: "PATCH",
         headers: {
           Authorization: `${token}`,
+          "Content-Type": "application/json",
         },
-        body: formdata,
+        body: JSON.stringify(formdata),
       }
     );
     const result = await res.json();
@@ -170,7 +172,10 @@ export const deletedSubmission = async (id: string): Promise<any> => {
     throw new Error(error.message || "Something went wrong");
   }
 };
-export const ApprovedOrRejectJobs = async (id: string, data): Promise<any> => {
+export const ApprovedOrRejectJobs = async (
+  id: string,
+  data: any
+): Promise<any> => {
   console.log(data);
   const token = (await cookies()).get("accessToken")!.value;
 

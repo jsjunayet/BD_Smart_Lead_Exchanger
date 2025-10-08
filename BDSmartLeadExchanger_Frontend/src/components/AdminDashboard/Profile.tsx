@@ -1,4 +1,5 @@
 "use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,16 +33,47 @@ import {
   User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { uploadImageToCloudinary } from "../share/clodinaryUpload";
+
+// ✅ Type definitions
+interface Admin {
+  name: string;
+  userName: string;
+  email: string;
+  phoneNumber: string;
+  country: string;
+  city: string;
+  affiliateNetworkName: string;
+  publisherId: string;
+  ProfileImage?: string;
+  wallet?: number;
+  surfingBalance?: number;
+}
+
+interface EditForm {
+  name: string;
+  phoneNumber: string;
+  country: string;
+  city: string;
+  affiliateNetworkName: string;
+  publisherId: string;
+}
+
+interface PasswordFields {
+  oldPassword: string;
+  newPassword: string;
+  confirm: string;
+}
 
 export default function AdminProfile() {
-  const [admin, setAdmin] = useState();
-  const [loading, setisloading] = useState();
+  const [admin, setAdmin] = useState<Admin | null>(null);
+  const [loading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
+
+  const [editForm, setEditForm] = useState<EditForm>({
     name: "",
     phoneNumber: "",
     country: "",
@@ -49,6 +81,18 @@ export default function AdminProfile() {
     affiliateNetworkName: "",
     publisherId: "",
   });
+
+  const [passwords, setPasswords] = useState<PasswordFields>({
+    oldPassword: "",
+    newPassword: "",
+    confirm: "",
+  });
+
+  const [profileImage, setProfileImage] = useState<string | File | undefined>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  // ✅ Sync form when admin is fetched
   useEffect(() => {
     if (admin) {
       setEditForm({
@@ -59,105 +103,113 @@ export default function AdminProfile() {
         affiliateNetworkName: admin.affiliateNetworkName || "",
         publisherId: admin.publisherId || "",
       });
-
       setProfileImage(admin.ProfileImage);
     }
   }, [admin]);
 
-  const [passwords, setPasswords] = useState({
-    oldPassword: "",
-    newPassword: "",
-    confirm: "",
-  });
-  const [profileImage, setProfileImage] = useState(admin?.ProfileImage);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handlePasswordChange = async () => {
-    if (passwords.newPassword !== passwords.confirm) {
-      toast.info("Password don't Match");
-      return;
-    }
-    setisloading(true);
-    const res = await ChangePassword(passwords);
-    if (res.success) {
-      setisloading(false);
-      router.push("/login");
-      logout();
-      toast.success("Successfull Password  Change");
-      setPasswords({ oldPassword: "", newPassword: "", confirm: "" });
-    } else {
-      toast.error(`${res.message}`);
-      setisloading(false);
+  // ✅ Fetch user
+  const fetchOwnerData = async () => {
+    try {
+      const data = await getSingleuser();
+      setAdmin(data?.data);
+    } catch (err) {
+      console.error(err);
     }
   };
-  const handleProfileUpdate = async () => {
-    const formData = new FormData();
 
-    // Always append data
-    console.log(editForm);
-    formData.append("data", JSON.stringify(editForm));
+  useEffect(() => {
+    fetchOwnerData();
+  }, []);
 
-    // Append file only if user selected one
-    if (profileImage instanceof File) {
-      formData.append("file", profileImage);
+  // ✅ Change password
+  const handlePasswordChange = async () => {
+    if (passwords.newPassword !== passwords.confirm) {
+      toast.info("Passwords don't match");
+      return;
     }
 
     try {
-      setisloading(true);
-      const res = await UpdateProfile(formData);
-      console.log(res);
+      setIsLoading(true);
+      const res = await ChangePassword(passwords);
+      if (res.success) {
+        logout();
+        router.push("/login");
+        toast.success("Password changed successfully");
+        setPasswords({ oldPassword: "", newPassword: "", confirm: "" });
+      } else {
+        toast.error(res.message);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ✅ Update profile
+  const handleProfileUpdate = async () => {
+    try {
+      setIsLoading(true);
+
+      let uploadedImageUrl = admin?.ProfileImage || "";
+
+      // ✅ If user selected a new file → upload to Cloudinary first
+      if (profileImage instanceof File) {
+        uploadedImageUrl = await uploadImageToCloudinary(profileImage);
+      }
+
+      // ✅ Prepare the data for backend
+      const updatedData = {
+        ...editForm,
+        ProfileImage: uploadedImageUrl,
+      };
+      const res = await UpdateProfile(updatedData);
 
       if (res.success) {
-        setAdmin({ ...admin, ...editForm, ProfileImage: res.ProfileImageUrl });
+        setAdmin({
+          ...admin!,
+          ...editForm,
+          ProfileImage: res.ProfileImageUrl,
+        });
         setProfileImage(res.ProfileImageUrl);
         setIsEditing(false);
-        setisloading(false);
-        toast.success(`${res.message}`);
+        fetchOwnerData();
+        toast.success(res.message);
       } else {
-        setisloading(false);
-        toast.error(`${res.message}`);
+        toast.error(res.message);
       }
-    } catch (err) {
-      setisloading(false);
+    } catch (err: any) {
       console.error(err);
-      toast.error(`${err.message}`);
+      toast.error(err.message || "Error updating profile");
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // ✅ Image upload
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setProfileImage(file); // store File
-    }
+    if (file) setProfileImage(file);
   };
 
+  // ✅ Edit toggle
   const handleEditToggle = () => {
-    if (isEditing) {
-      // Reset form if canceling
+    if (isEditing && admin) {
       setEditForm({
         name: admin.name,
-        userName: admin.userName,
-        email: admin.email,
         phoneNumber: admin.phoneNumber,
         country: admin.country,
         city: admin.city,
         affiliateNetworkName: admin.affiliateNetworkName,
         publisherId: admin.publisherId,
       });
-      setProfileImage(admin.image);
+      setProfileImage(admin.ProfileImage);
     }
     setIsEditing(!isEditing);
   };
-  const fetchOWnerData = async () => {
-    const data = await getSingleuser();
-    console.log(data, "data");
-    setAdmin(data?.data);
-  };
-  useEffect(() => {
-    fetchOWnerData();
-  }, []);
+
   return (
-    <div className="space-y-8 max-w-full ">
+    <div className="space-y-8 max-w-full">
       <div>
         <h1 className="text-3xl font-bold text-foreground mb-2">
           Admin Profile
@@ -183,12 +235,13 @@ export default function AdminProfile() {
                     alt={admin?.name}
                   />
                   <AvatarFallback className="text-xl">
-                    {admin?.name.charAt(0)}
+                    {admin?.name?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
+
                 {isEditing && (
                   <button
-                    onClick={() => fileInputRef.oldPassword?.click()}
+                    onClick={() => fileInputRef.current?.click()}
                     className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Camera className="h-6 w-6 text-white" />
@@ -221,7 +274,7 @@ export default function AdminProfile() {
                     Wallet Balance
                   </span>
                   <span className="font-semibold text-foreground">
-                    ${admin?.wallet}
+                    ${admin?.wallet ?? 0}
                   </span>
                 </div>
 
@@ -230,7 +283,7 @@ export default function AdminProfile() {
                     Surfing Balance
                   </span>
                   <span className="font-semibold text-foreground">
-                    {admin?.surfingBalance}
+                    {admin?.surfingBalance ?? 0}
                   </span>
                 </div>
               </div>
@@ -273,11 +326,12 @@ export default function AdminProfile() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Name */}
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input
                   id="name"
-                  value={isEditing ? editForm.name : admin?.name}
+                  value={isEditing ? editForm.name : admin?.name ?? ""}
                   onChange={(e) =>
                     isEditing &&
                     setEditForm({ ...editForm, name: e.target.value })
@@ -286,6 +340,7 @@ export default function AdminProfile() {
                 />
               </div>
 
+              {/* Phone */}
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                 <div className="relative">
@@ -293,11 +348,16 @@ export default function AdminProfile() {
                   <Input
                     id="phone"
                     value={
-                      isEditing ? editForm.phoneNumber : admin?.phoneNumber
+                      isEditing
+                        ? editForm.phoneNumber
+                        : admin?.phoneNumber ?? ""
                     }
                     onChange={(e) =>
                       isEditing &&
-                      setEditForm({ ...editForm, phoneNumber: e.target.value })
+                      setEditForm({
+                        ...editForm,
+                        phoneNumber: e.target.value,
+                      })
                     }
                     className="pl-10"
                     disabled={!isEditing}
@@ -305,13 +365,14 @@ export default function AdminProfile() {
                 </div>
               </div>
 
+              {/* Country */}
               <div className="space-y-2">
                 <Label htmlFor="country">Country</Label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="country"
-                    value={isEditing ? editForm.country : admin?.country}
+                    value={isEditing ? editForm.country : admin?.country ?? ""}
                     onChange={(e) =>
                       isEditing &&
                       setEditForm({ ...editForm, country: e.target.value })
@@ -322,11 +383,12 @@ export default function AdminProfile() {
                 </div>
               </div>
 
+              {/* City */}
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
                 <Input
                   id="city"
-                  value={isEditing ? editForm.city : admin?.city}
+                  value={isEditing ? editForm.city : admin?.city ?? ""}
                   onChange={(e) =>
                     isEditing &&
                     setEditForm({ ...editForm, city: e.target.value })
@@ -335,6 +397,7 @@ export default function AdminProfile() {
                 />
               </div>
 
+              {/* Affiliate */}
               <div className="space-y-2">
                 <Label htmlFor="affiliate">Affiliate Network</Label>
                 <div className="relative">
@@ -344,21 +407,15 @@ export default function AdminProfile() {
                     value={
                       isEditing
                         ? editForm.affiliateNetworkName
-                        : admin?.affiliateNetworkName
-                    }
-                    onChange={(e) =>
-                      isEditing &&
-                      setEditForm({
-                        ...editForm,
-                        affiliateNetworkName: e.target.value,
-                      })
+                        : admin?.affiliateNetworkName ?? ""
                     }
                     className="pl-10"
-                    disabled={!isEditing}
+                    disabled
                   />
                 </div>
               </div>
 
+              {/* Publisher */}
               <div className="space-y-2">
                 <Label htmlFor="publisher">Publisher ID</Label>
                 <div className="relative">
@@ -366,14 +423,12 @@ export default function AdminProfile() {
                   <Input
                     id="publisher"
                     value={
-                      isEditing ? editForm.publisherId : admin?.publisherId
-                    }
-                    onChange={(e) =>
-                      isEditing &&
-                      setEditForm({ ...editForm, publisherId: e.target.value })
+                      isEditing
+                        ? editForm.publisherId
+                        : admin?.publisherId ?? ""
                     }
                     className="pl-10"
-                    disabled={!isEditing}
+                    disabled
                   />
                 </div>
               </div>
@@ -390,14 +445,15 @@ export default function AdminProfile() {
                     onClick={handleProfileUpdate}
                     className="bg-primary hover:bg-primary/90 gap-2"
                   >
-                    <Save className="h-4 w-4" />
                     {loading ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        Save Changing...
+                        Saving...
                       </>
                     ) : (
-                      " Save Changes"
+                      <>
+                        <Save className="h-4 w-4" /> Save Changes
+                      </>
                     )}
                   </Button>
                 </div>
@@ -430,15 +486,17 @@ export default function AdminProfile() {
                   <DialogHeader>
                     <DialogTitle>Change Password</DialogTitle>
                     <DialogDescription>
-                      Enter your oldPassword password and choose a new one.
+                      Enter your old password and choose a new one.
                     </DialogDescription>
                   </DialogHeader>
+
                   <div className="space-y-4">
+                    {/* Old password */}
                     <div className="space-y-2">
-                      <Label htmlFor="oldPassword-password">Old Password</Label>
+                      <Label htmlFor="old-password">Old Password</Label>
                       <div className="relative">
                         <Input
-                          id="oldPassword-password"
+                          id="old-password"
                           type={showPassword ? "text" : "password"}
                           value={passwords.oldPassword}
                           onChange={(e) =>
@@ -464,6 +522,7 @@ export default function AdminProfile() {
                       </div>
                     </div>
 
+                    {/* New password */}
                     <div className="space-y-2">
                       <Label htmlFor="new-password">New Password</Label>
                       <Input
@@ -479,6 +538,7 @@ export default function AdminProfile() {
                       />
                     </div>
 
+                    {/* Confirm */}
                     <div className="space-y-2">
                       <Label htmlFor="confirm-password">
                         Confirm New Password
@@ -496,16 +556,17 @@ export default function AdminProfile() {
                       />
                     </div>
                   </div>
+
                   <DialogFooter>
                     <Button variant="outline">Cancel</Button>
                     <Button onClick={handlePasswordChange}>
                       {loading ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
-                          Update Password...
+                          Updating...
                         </>
                       ) : (
-                        "  Update Password"
+                        "Update Password"
                       )}
                     </Button>
                   </DialogFooter>

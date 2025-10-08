@@ -8,24 +8,16 @@ import { FieldValues } from "react-hook-form";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const SignUpUser = async (userData: Record<string, any>) => {
   try {
-    const formData = new FormData();
-
-    // সব ফিল্ড append করো
-    Object.entries(userData).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        formData.append(key, value as any);
-      }
-    });
-
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/auth/signUp`, {
       method: "POST",
-      body: formData, // এখানে JSON নয়, FormData যাবে
+      headers: {
+        "Content-Type": "application/json", // ✅ only for JSON
+      },
+      body: JSON.stringify(userData),
     });
 
     const result = await res.json();
     return result;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { success: false, message: error.message };
   }

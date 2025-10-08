@@ -25,7 +25,6 @@ import {
   CheckCircle,
   Clock,
   CreditCard,
-  DollarSign,
   History,
   Smartphone,
   XCircle,
@@ -38,7 +37,8 @@ const Deposit = () => {
   const [activeTable, setActiveTable] = useState("deposit");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [Bkash, setBkash] = useState([]);
+  const [Bkash, setBkash] = useState<{ number: string; rate: string }[]>([]);
+
   const [depositForm, setDepositForm] = useState({
     amount: "",
     transactionId: "",
@@ -50,7 +50,7 @@ const Deposit = () => {
       const res = await getOwndeposit();
       setMyDeposit(res?.data);
     } catch (error) {
-      console.error("Error fetching workplace jobs:", error.message);
+      console.error("Error fetching workplace jobs");
     }
   };
   const fetchBkash = async () => {
@@ -59,7 +59,7 @@ const Deposit = () => {
       console.log(res);
       setBkash(res?.data);
     } catch (error) {
-      console.error("Error fetching workplace jobs:", error.message);
+      console.error("Error fetching workplace jobs");
     }
   };
   useEffect(() => {
@@ -128,23 +128,7 @@ const Deposit = () => {
       setIsLoading(false);
       console.error("Error creating deposit:", error);
     }
-    // Handle deposit submission logic here
   };
-
-  // const stats = {
-  //   totalDeposited: depositHistory
-  //     .filter((d) => d.status === "success")
-  //     .reduce((sum, d) => sum + d.amount, 0),
-  //   pendingAmount: depositHistory
-  //     .filter((d) => d.status === "pending")
-  //     .reduce((sum, d) => sum + d.amount, 0),
-  //   totalTransactions: depositHistory.length,
-  //   successRate: Math.round(
-  //     (depositHistory.filter((d) => d.status === "success").length /
-  //       depositHistory.length) *
-  //       100
-  //   ),
-  // };
 
   return (
     <div className="space-y-6">
@@ -191,7 +175,11 @@ const Deposit = () => {
                   <div className="space-y-2">
                     <Label htmlFor="amount">Amount (৳) *</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      {/* ৳ Icon */}
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg">
+                        ৳
+                      </span>
+
                       <Input
                         id="amount"
                         type="number"
@@ -203,11 +191,15 @@ const Deposit = () => {
                             amount: e.target.value,
                           }))
                         }
-                        className="pl-10"
+                        className="pl-8" // extra padding so text doesn't overlap the ৳
                         required
                       />
                     </div>
-                    <p className="text-xs text-gray-500">Minimum deposit: ৳1</p>
+
+                    <p className="text-xs text-gray-500">
+                      Minimum deposit: ৳
+                      {Bkash.length > 0 ? Bkash[0].rate : "132"}
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -378,8 +370,8 @@ const Deposit = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {MyDeposit?.map((deposit) => (
-                      <TableRow key={deposit.id}>
+                    {MyDeposit?.map((deposit: any) => (
+                      <TableRow key={deposit._id}>
                         <TableCell>
                           {new Date(deposit.createdAt).toLocaleDateString()}
                         </TableCell>

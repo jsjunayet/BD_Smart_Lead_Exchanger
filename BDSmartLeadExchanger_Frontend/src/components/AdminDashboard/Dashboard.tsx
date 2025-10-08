@@ -2,6 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllDataDashbaord } from "@/services/jobService";
+import { DashboardStatsSkeleton, StatsCardSkeleton } from "@/components/ui/skeletons";
 import {
   AlertCircle,
   AlertTriangle,
@@ -33,14 +34,12 @@ interface RecentActivity {
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState<StatItem[]>([]);
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
-    []
-  );
-
-  console.log(stats, recentActivities);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     try {
+      setIsLoading(true);
       const response = await getAllDataDashbaord();
       if (response.success) {
         setStats(response?.data.stats || []);
@@ -48,6 +47,8 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -113,25 +114,29 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        {stats.map((stat, index) => {
-          const IconComponent = getStatIcon(stat.title);
-          return (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <IconComponent className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.trend}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {isLoading ? (
+        <DashboardStatsSkeleton />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {stats.map((stat, index) => {
+            const IconComponent = getStatIcon(stat.title);
+            return (
+              <Card key={index}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {stat.title}
+                  </CardTitle>
+                  <IconComponent className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground">{stat.trend}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Recent Activities */}
       <Card>
@@ -139,49 +144,72 @@ const AdminDashboard = () => {
           <CardTitle>Recent Activities</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentActivities.length > 0 ? (
-              recentActivities.map((activity, index) => {
-                const StatusIcon = getStatusIcon(activity.status);
-                return (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
+          {isLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-2 h-2 rounded-full ${getStatusColor(
-                          activity.status
-                        )}`}
-                      ></div>
-                      <div>
-                        <p className="font-medium">{activity.user}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {activity.action}
+                      <div className="w-2 h-2 rounded-full bg-gray-200"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                        <div className="h-3 w-32 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                      <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                      <div className="h-3 w-12 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentActivities.length > 0 ? (
+                recentActivities.map((activity, index) => {
+                  const StatusIcon = getStatusIcon(activity.status);
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-2 h-2 rounded-full ${getStatusColor(
+                            activity.status
+                          )}`}
+                        ></div>
+                        <div>
+                          <p className="font-medium">{activity.user}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {activity.action}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right flex items-center space-x-2">
+                        <StatusIcon className="h-4 w-4" />
+                        <Badge
+                          variant="outline"
+                          className={getStatusColor(activity.status)}
+                        >
+                          {activity.status}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {activity.time}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right flex items-center space-x-2">
-                      <StatusIcon className="h-4 w-4" />
-                      <Badge
-                        variant="outline"
-                        className={getStatusColor(activity.status)}
-                      >
-                        {activity.status}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {activity.time}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <p className="text-center text-muted-foreground py-4">
-                No recent activities
-              </p>
-            )}
-          </div>
+                  );
+                })
+              ) : (
+                <p className="text-center text-muted-foreground py-4">
+                  No recent activities
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

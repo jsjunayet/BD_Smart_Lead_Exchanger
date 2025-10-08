@@ -1,6 +1,5 @@
-import express, { NextFunction } from 'express';
+import express from 'express';
 import auth from '../../middlewares/auth';
-import { upload } from '../../utils/sendImageToCloudinary';
 import { JobSubmissionController } from './JobSubmission.controller';
 
 const router = express.Router();
@@ -13,11 +12,6 @@ router.patch(
 
 router.post(
   '/jobSubmit/:id',
-  upload.array('files', 4), // max 4 screenshot allow
-  (req: Request, res: Response, next: NextFunction) => {
-    req.body = JSON.parse(req.body.data);
-    next();
-  },
   auth('admin', 'user', 'superAdmin'),
   JobSubmissionController.jobSubmitted,
 );

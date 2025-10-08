@@ -1,9 +1,9 @@
 import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
-import { IBkash } from './bkash.interface';
+import { IMobileBank } from './bkash.interface';
 import { Bkash } from './bkash.model';
 
-const createBkash = async (body: IBkash) => {
+const createBkash = async (body: IMobileBank) => {
   const { number, rate, type } = body;
   const newBkash = await Bkash.create({ number, rate, type });
   return newBkash;
@@ -19,7 +19,7 @@ const getBkashById = async (id: string) => {
   }
   return result;
 };
-const updateBkashStatus = async (id: string, body: Partial<IBkash>) => {
+const updateBkashStatus = async (id: string, body: Partial<IMobileBank>) => {
   const updated = await Bkash.findByIdAndUpdate(id, body, {
     new: true,
   });

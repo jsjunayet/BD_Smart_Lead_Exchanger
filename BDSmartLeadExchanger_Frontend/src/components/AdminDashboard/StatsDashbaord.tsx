@@ -27,23 +27,17 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface Stat {
-  _id: string;
   label: string;
   value: string;
 }
 
 const StatsDashboard = () => {
-  const [stats, setStats] = useState<Stat[]>([
-    { id: "1", label: "Total Users", value: "10,234" },
-    { id: "2", label: "Active Sessions", value: "1,432" },
-    { id: "3", label: "Revenue", value: "$45,231" },
-  ]);
-  const [Allstatses, setAllstatses] = useState<Deposit[]>([]);
+  const [Allstatses, setAllstatses] = useState<any[]>([]);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedStat, setSelectedStat] = useState<Stat | null>(null);
+  const [selectedStat, setSelectedStat] = useState<any | null>(null);
   const [formData, setFormData] = useState({ label: "", value: "" });
   const fetchstats = async () => {
     try {
@@ -160,7 +154,7 @@ const StatsDashboard = () => {
             </Button>
           </CardHeader>
           <CardContent>
-            {stats.length === 0 ? (
+            {Allstatses.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p>No statistics yet. Create your first one!</p>
               </div>

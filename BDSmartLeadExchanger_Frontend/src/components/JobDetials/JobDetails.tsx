@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { CardSkeleton, FormSkeleton } from "@/components/ui/skeletons";
 import { getWorkPlace } from "@/services/jobService";
 import { createSubmission } from "@/services/JobSubmission";
 import { ArrowLeft, Loader2, Users } from "lucide-react";
@@ -10,32 +11,27 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { uploadImageToCloudinary } from "../share/clodinaryUpload";
 
-interface WorkplaceJob {
-  id: string;
-  title: string;
-  description: string;
-  requirements: string;
-  payment: number;
-  postedBy: string;
-  timeRemaining: string;
-  difficulty: "easy" | "medium" | "hard";
-  category: string;
-  estimatedTime: string;
-}
-
-const SinglePage = ({ jobId }) => {
+type SinglePageProps = {
+  jobId: string;
+};
+const SinglePage = ({ jobId }: SinglePageProps) => {
   const [loading, setLoading] = useState(false);
+  const [isLoadingJob, setIsLoadingJob] = useState(true);
   const navigate = useRouter();
-  const [job, setJob] = useState<WorkplaceJob | null>(null);
+  const [job, setJob] = useState<any | null>(null);
   useEffect(() => {
     const fetchJobs = async () => {
       try {
+        setIsLoadingJob(true);
         const res = await getWorkPlace();
-        const foundJob = res?.data?.find((j) => j?._id === jobId);
+        const foundJob = res?.data?.find((j: any) => j?._id === jobId);
         setJob(foundJob || null);
       } catch (error) {
-        console.error("Error fetching workplace jobs:", error.message);
+        console.error("Error fetching workplace jobs");
+      } finally {
+        setIsLoadingJob(false);
       }
     };
     fetchJobs();
@@ -82,6 +78,21 @@ const SinglePage = ({ jobId }) => {
         return <Badge variant="secondary">{difficulty}</Badge>;
     }
   };
+  if (isLoadingJob) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </div>
+        <CardSkeleton showHeader={true} />
+        <FormSkeleton />
+      </div>
+    );
+  }
+
   if (!job) {
     return null;
   }
@@ -93,28 +104,33 @@ const SinglePage = ({ jobId }) => {
       return;
     }
 
-    const formData = new FormData();
-
-    // Status JSON payload
-    const payload = { status: "submitted" };
-    formData.append("data", JSON.stringify(payload));
-
-    // ১️⃣ Screenshots (max 4)
-    const fileKeys = [
-      "screenshot1File",
-      "screenshot2File",
-      "screenshot3File",
-      "screenshot4File",
-    ] as const;
-
-    fileKeys.forEach((key) => {
-      const file = jobData[key];
-      if (file) formData.append("files", file); // field name must be 'files'
-    });
-
     try {
       setLoading(true);
-      const res = await createSubmission(jobId, formData);
+
+      // ✅ ১️⃣ Upload screenshots to Cloudinary sequentially
+      const fileKeys = [
+        "screenshot1File",
+        "screenshot2File",
+        "screenshot3File",
+        "screenshot4File",
+      ] as const;
+
+      const uploadedImageUrls: string[] = [];
+
+      for (const key of fileKeys) {
+        const file = jobData[key];
+        if (file) {
+          const url = await uploadImageToCloudinary(file);
+          uploadedImageUrls.push(url);
+        }
+      }
+
+      // ✅ ২️⃣ Create payload
+      const payload = {
+        status: "submitted",
+        screenshots: uploadedImageUrls,
+      };
+      const res = await createSubmission(jobId, payload);
       console.log(res, "res after submission");
       if (res?.success) {
         toast.success("✅ Job submitted successfully!");
@@ -139,7 +155,7 @@ const SinglePage = ({ jobId }) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate("/workplace")}
+            onClick={() => navigate.push("/user/dashboard/workplace")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Workplace
@@ -194,7 +210,7 @@ const SinglePage = ({ jobId }) => {
             <div className="space-y-3">
               {job?.description
                 ?.split("\n")
-                .filter((line) => line.trim() !== "")
+                .filter((line: any) => line.trim() !== "")
                 .map((line: string, idx: number) => (
                   <div key={idx} className="flex items-start space-x-3">
                     <div className="w-4 h-4 bg-success rounded-sm flex-shrink-0 mt-0.5"></div>

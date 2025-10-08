@@ -41,9 +41,9 @@ interface Report {
 
 const ReportManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [selectedReport, setSelectedReport] = useState<any | null>(null);
   const [adminResponse, setAdminResponse] = useState("");
-  const [reports, setReports] = useState<Report[]>([]); // সব reports
+  const [reports, setReports] = useState<any[]>([]); // সব reports
   const [openModal, setopenModal] = useState(false);
   const fetchReports = async () => {
     try {

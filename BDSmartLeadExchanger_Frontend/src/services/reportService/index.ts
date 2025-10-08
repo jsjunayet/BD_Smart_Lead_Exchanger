@@ -26,7 +26,8 @@ export const getAllReportService = async () => {
 };
 
 // create post
-export const createReportService = async (formdata): Promise<any> => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const createReportService = async (formdata: any): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
@@ -46,7 +47,11 @@ export const createReportService = async (formdata): Promise<any> => {
   }
 };
 
-export const UpdateReportService = async (id: string, data): Promise<any> => {
+export const UpdateReportService = async (
+  id: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any
+): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {

@@ -28,6 +28,25 @@ export const getAlluser = async () => {
     return Error(error.message);
   }
 };
+export const getAllHome = async () => {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API}/user/admin/home/get-all`,
+      {
+        method: "GET",
+        next: {
+          tags: ["user"],
+        },
+      }
+    );
+
+    const data = await res.json();
+    return data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return Error(error.message);
+  }
+};
 export const getSingleuser = async () => {
   const token = (await cookies())?.get("accessToken")?.value || "";
 
@@ -78,7 +97,8 @@ export const getDashboardData = async () => {
     return Error(error.message);
   }
 };
-export const UpdateProfile = async (userData: Record<string, any>) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const UpdateProfile = async (userData: any) => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
@@ -88,8 +108,9 @@ export const UpdateProfile = async (userData: Record<string, any>) => {
         method: "PATCH",
         headers: {
           Authorization: `${token}`,
+          "Content-Type": "application/json",
         },
-        body: userData,
+        body: JSON.stringify(userData),
       }
     );
 
@@ -144,8 +165,34 @@ export const Approveduser = async (id: string, data: string): Promise<any> => {
     throw new Error(error.message || "Something went wrong");
   }
 };
-export const userRoleUpate = async (id: string, data): Promise<any> => {
-  console.log(data, id, "servere");
+export const userHomeUpdate = async (id: string): Promise<any> => {
+  try {
+    const token = (await cookies()).get("accessToken")!.value;
+    if (!token) throw new Error("No access token found");
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API}/user/admin/home/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const result = await res.json();
+
+    // Revalidate the "user" tag if you use caching / ISR
+    revalidateTag("user");
+
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message || "Something went wrong");
+  }
+};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const userRoleUpate = async (id: string, data: any): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {

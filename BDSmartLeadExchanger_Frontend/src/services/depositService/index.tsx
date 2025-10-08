@@ -52,7 +52,8 @@ export const getOwndeposit = async () => {
   }
 };
 // create post
-export const createdeposit = async (formdata): Promise<any> => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const createdeposit = async (formdata: any): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
@@ -75,7 +76,7 @@ export const createdeposit = async (formdata): Promise<any> => {
   }
 };
 
-export const Approveddeposit = async (id: string, data): Promise<any> => {
+export const Approveddeposit = async (id: string, data: any): Promise<any> => {
   console.log(data, id, "servere");
   const token = (await cookies()).get("accessToken")!.value;
 

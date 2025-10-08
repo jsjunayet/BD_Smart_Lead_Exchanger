@@ -49,7 +49,10 @@ export const getOwnSubmission = async () => {
 };
 // create post
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createSubmission = async (id, formdata): Promise<any> => {
+export const createSubmission = async (
+  id: string,
+  formdata: any
+): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 
   try {
@@ -59,8 +62,9 @@ export const createSubmission = async (id, formdata): Promise<any> => {
         method: "POST",
         headers: {
           Authorization: `${token}`,
+          "Content-Type": "application/json",
         },
-        body: formdata,
+        body: JSON.stringify(formdata),
       }
     );
     const result = await res.json();
@@ -97,7 +101,7 @@ export const createSubmission = async (id, formdata): Promise<any> => {
 // };
 export const ApprovedOrRejectSubmission = async (
   id: string,
-  data
+  data: any
 ): Promise<any> => {
   const token = (await cookies()).get("accessToken")!.value;
 

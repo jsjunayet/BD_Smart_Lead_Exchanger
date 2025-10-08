@@ -1,6 +1,5 @@
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
-import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import sendResponse from '../../utils/sendResponse';
 import { JobSubmissionService } from './JobSubmission.service';
 
@@ -21,26 +20,14 @@ const reviewSubmission = catchAsync(async (req, res) => {
   });
 });
 const jobSubmitted = catchAsync(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user!.userId;
   const jobId = req.params.id;
-
-  // multiple file upload
-  const files = req.files;
-  console.log(files);
-  const proofPaths: string[] = [];
-
-  if (files && files.length > 0) {
-    for (const file of files) {
-      const imageName = `${jobId}-${userId}-${Date.now()}`;
-      const { secure_url } = await sendImageToCloudinary(imageName, file.path);
-      proofPaths.push(secure_url);
-    }
-  }
+  const { screenshots } = req.body;
 
   const result = await JobSubmissionService.submitJob(
     jobId,
     userId,
-    proofPaths,
+    screenshots,
   );
 
   sendResponse(res, {

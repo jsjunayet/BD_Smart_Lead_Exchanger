@@ -8,4 +8,5 @@ export interface IJob extends Document {
   thumbnail?: string;
   postedBy: Schema.Types.ObjectId;
   approvedByAdmin: boolean;
+  createdAt: Date;
 }

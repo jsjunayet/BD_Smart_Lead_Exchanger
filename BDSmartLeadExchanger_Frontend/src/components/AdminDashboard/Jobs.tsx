@@ -71,7 +71,7 @@ const MyJobs = () => {
   const [searchTerm2, setSearchTerm2] = useState("");
 
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
-  const [myJobsData, setMyJobsData] = useState<MyJobItem[]>([]);
+  const [myJobsData, setMyJobsData] = useState<any[]>([]);
   // --- Add this state at top level ---
   const [submissions, setSubmissions] = useState<{ [key: string]: number }>({});
 
@@ -81,7 +81,7 @@ const MyJobs = () => {
       setSubmissions((prev) => {
         const updated: { [key: string]: number } = {};
         myJobsData.forEach((job) => {
-          job.submissions.forEach((sub) => {
+          job.submissions.forEach((sub: any) => {
             if (sub.status === "submitted") {
               const submittedTime = new Date(sub.submittedAt).getTime();
               const deadline = submittedTime + 2 * 60 * 60 * 1000; // 2 hours
@@ -180,7 +180,7 @@ const MyJobs = () => {
       toast.success(`${res.message}`);
     }
   };
-  const getSubmissionStats = (submissions: Submission[]) => {
+  const getSubmissionStats = (submissions: any[]) => {
     const total = submissions.length;
     const approved = submissions.filter((s) => s.status === "approved").length;
     const submitted = submissions.filter(
@@ -198,12 +198,12 @@ const MyJobs = () => {
     return matchesSearch;
   });
   // NEW FUNCTION: Filters submissions by user name or email
-  const getFilteredSubmissions = (job: MyJobItem) => {
+  const getFilteredSubmissions = (job: any) => {
     if (!searchTerm2.trim()) {
       return job.submissions; // Return all if no search term
     }
 
-    return job.submissions.filter((submission) => {
+    return job.submissions.filter((submission: any) => {
       const searchLower = searchTerm2.toLowerCase();
       return (
         submission.user.name.toLowerCase().includes(searchLower) ||
@@ -293,8 +293,9 @@ const MyJobs = () => {
                   {myJobsData.reduce(
                     (acc, job) =>
                       acc +
-                      job.submissions.filter((s) => s.status === "submitted")
-                        .length,
+                      job.submissions.filter(
+                        (s: any) => s.status === "submitted"
+                      ).length,
                     0
                   )}
                 </p>
@@ -329,7 +330,7 @@ const MyJobs = () => {
           return (
             <Card key={job._id} className="overflow-hidden">
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="md:flex space-y-2 md:space-y-0 items-start justify-between">
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-lg font-semibold">{job.title}</h3>
@@ -365,7 +366,7 @@ const MyJobs = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="md:flex space-y-2 md:space-y-0 items-center space-x-2">
                     {!job.approvedByAdmin && (
                       <div className="flex space-x-2">
                         <Button
@@ -384,6 +385,69 @@ const MyJobs = () => {
                           <X className="h-3 w-3 mr-1" />
                           Reject
                         </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4 mr-1" />
+                              Job
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl  h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                            <DialogHeader>
+                              <DialogTitle> Job Information</DialogTitle>
+                            </DialogHeader>
+                            <div className="">
+                              <Card>
+                                <CardContent className="space-y-2">
+                                  <div>
+                                    <span className="font-medium">Title:</span>
+                                    <p className="text-muted-foreground">
+                                      {job.title}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">
+                                      Description:
+                                    </span>
+                                    <p className="text-muted-foreground">
+                                      {job.description}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">
+                                      Job URL:
+                                    </span>
+                                    <Link
+                                      href={job.jobUrl}
+                                      passHref
+                                      legacyBehavior
+                                    >
+                                      <a
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-muted-foreground break-all"
+                                      >
+                                        {job.jobUrl}
+                                      </a>
+                                    </Link>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">
+                                      Screenshot Requirements:
+                                    </span>
+                                    <ul className="text-muted-foreground list-disc list-inside">
+                                      {job.screenshotTitles.map(
+                                        (title: any, index: any) => (
+                                          <li key={index}>{title}</li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     )}
                     <Button
@@ -403,7 +467,7 @@ const MyJobs = () => {
               {isExpanded && (
                 <CardContent className="pt-0">
                   <div className="border-t pt-4">
-                    <div className="flex justify-between">
+                    <div className="md:flex space-y-2 md:space-y-0 justify-between">
                       <h4 className="font-medium mb-4">
                         Submissions ({stats.total})
                       </h4>
@@ -436,7 +500,7 @@ const MyJobs = () => {
                           </TableHeader>
 
                           <TableBody>
-                            {filteredSubmissions.map((submission) => (
+                            {filteredSubmissions.map((submission: any) => (
                               <TableRow key={submission._id}>
                                 <TableCell className="font-mono text-sm">
                                   {submission._id}

@@ -1,4 +1,5 @@
 "use client";
+import { uploadImageToCloudinary } from "@/components/share/clodinaryUpload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -76,7 +77,6 @@ const MyJobs = () => {
   const [newThumbnail, setNewThumbnail] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
   // Countdown timer effect
   useEffect(() => {
     const timer = setInterval(() => {
@@ -159,25 +159,26 @@ const MyJobs = () => {
   const handleJobEdit = async () => {
     if (!editingJob) return;
 
-    setIsLoading(true);
     try {
-      const formData = new FormData();
+      setIsLoading(true);
 
-      // Append job data as JSON
-      const jobData = {
+      let thumbnailUrl = editingJob.thumbnail;
+
+      // ✅ If a new image selected → upload to Cloudinary first
+      if (newThumbnail) {
+        const uploadedUrl = await uploadImageToCloudinary(newThumbnail);
+        thumbnailUrl = uploadedUrl;
+      }
+
+      // ✅ Prepare updated job data
+      const updatedJob = {
         title: editingJob.title,
         description: editingJob.description,
         jobUrl: editingJob.jobUrl,
         screenshotTitles: editingJob.screenshotTitles,
+        thumbnail: thumbnailUrl, // keep old or use new
       };
-      formData.append("data", JSON.stringify(jobData));
-
-      // Append new thumbnail if selected
-      if (newThumbnail) {
-        formData.append("file", newThumbnail);
-      }
-
-      const response = await Updatejobs(editingJob._id, formData);
+      const response = await Updatejobs(editingJob._id, updatedJob);
 
       if (response.success) {
         toast.success("Job updated successfully!");
@@ -375,7 +376,7 @@ const MyJobs = () => {
           return (
             <Card key={job._id} className="overflow-hidden">
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="md:flex space-y-2 md:space-y-0 items-start justify-between">
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-lg font-semibold">{job.title}</h3>
@@ -417,7 +418,7 @@ const MyJobs = () => {
                           Edit Job
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-2xl h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                         <DialogHeader>
                           <DialogTitle>Edit Job</DialogTitle>
                         </DialogHeader>
@@ -574,7 +575,7 @@ const MyJobs = () => {
                             </div>
                             <Button
                               disabled={isLoading}
-                              onClick={() => handleJobEdit(editingJob)}
+                              onClick={() => handleJobEdit()}
                               className="w-full"
                             >
                               {isLoading ? (
@@ -619,7 +620,7 @@ const MyJobs = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Submission ID</TableHead>
+                              <TableHead>Submission Email</TableHead>
                               <TableHead>Status</TableHead>
                               <TableHead>Remaining Time</TableHead> {/* NEW */}
                               <TableHead>Proof Screenshots</TableHead>
@@ -629,10 +630,13 @@ const MyJobs = () => {
                           </TableHeader>
 
                           <TableBody>
-                            {job.submissions.map((submission) => (
+                            {job.submissions.map((submission: any) => (
                               <TableRow key={submission._id}>
                                 <TableCell className="font-mono text-sm">
-                                  {submission._id.slice(-8)}
+                                  {submission?.user?.email}
+                                  <p className=" text-sm text-gray-700">
+                                    {submission?.user?.name}
+                                  </p>
                                 </TableCell>
                                 <TableCell>
                                   {getSubmissionStatusBadge(submission.status)}
@@ -672,8 +676,7 @@ const MyJobs = () => {
                                               submission.proofScreenshots
                                             }
                                             titles={job.screenshotTitles}
-                                            professionalName="Professional User"
-                                            professionalImage="/placeholder.svg"
+                                            professionalName={`${submission.user.email}`}
                                             maxPreview={4}
                                           />
                                         </DialogContent>
