@@ -229,10 +229,12 @@ const getWorkplaceJobs = async (userId: string) => {
     approvedByAdmin: true,
     _id: { $nin: completedJobs },
   })
-    .populate('postedBy', 'name email')
+    .populate('postedBy', 'name email surfingBalance') // no match
     .lean();
-
-  return jobs;
+  const filteredJobs = jobs.filter(
+    (job) => !job.postedBy || (job.postedBy as any).surfingBalance > 0,
+  );
+  return filteredJobs;
 };
 
 // const completeJob = async (jobId: string, workerId: string) => {

@@ -44,6 +44,7 @@ const ReportManagement = () => {
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
   const [adminResponse, setAdminResponse] = useState("");
   const [reports, setReports] = useState<any[]>([]); // সব reports
+  console.log(reports, "rere");
   const [openModal, setopenModal] = useState(false);
   const fetchReports = async () => {
     try {
@@ -152,19 +153,23 @@ const ReportManagement = () => {
               {filteredReports?.map((report) => (
                 <TableRow key={report.id}>
                   <TableCell className="font-medium">{report._id}</TableCell>
-                  <TableCell>{report.user.name}</TableCell>
-                  <TableCell>{report.user.email}</TableCell>
-                  <TableCell>{report.submission.job.postedBy.email}</TableCell>
-                  <TableCell>{report.submission.job.postedBy.name}</TableCell>
+                  <TableCell>{report?.user?.name}</TableCell>
+                  <TableCell>{report?.user?.email}</TableCell>
+                  <TableCell>
+                    {report?.submission?.job?.postedBy.email}
+                  </TableCell>
+                  <TableCell>
+                    {report?.submission?.job?.postedBy?.name}
+                  </TableCell>
                   <TableCell>
                     <div>
                       <p className="font-medium">
-                        {report.submission.job.title}
+                        {report?.submission?.job?.title}
                       </p>
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge(report.status)}</TableCell>
-                  <TableCell>{report.createdAt}</TableCell>
+                  <TableCell>{getStatusBadge(report?.status)}</TableCell>
+                  <TableCell>{report?.createdAt}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Dialog>
@@ -181,7 +186,7 @@ const ReportManagement = () => {
                           <DialogHeader>
                             <DialogTitle className="flex items-center space-x-2">
                               <AlertTriangle className="h-5 w-5 text-orange-500" />
-                              <span>Report Details - {report._id}</span>
+                              <span>Report Details - {report?._id}</span>
                             </DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
@@ -190,7 +195,7 @@ const ReportManagement = () => {
                                 Reported By
                               </label>
                               <p className="text-sm text-muted-foreground">
-                                {report.user.name}, {report.user.email}
+                                {report?.user?.name}, {report?.user?.email}
                               </p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -199,7 +204,7 @@ const ReportManagement = () => {
                                   Job Title
                                 </label>
                                 <p className="text-sm text-muted-foreground">
-                                  {report.submission.job.title}
+                                  {report?.submission?.job?.title}
                                 </p>
                               </div>
                               <div>
@@ -207,7 +212,7 @@ const ReportManagement = () => {
                                   Status
                                 </label>
                                 <div className="mt-1">
-                                  {getStatusBadge(report.status)}
+                                  {getStatusBadge(report?.status)}
                                 </div>
                               </div>
                             </div>
@@ -218,7 +223,7 @@ const ReportManagement = () => {
                                   Job CreatorBy Email
                                 </label>
                                 <p className="text-sm text-muted-foreground">
-                                  {report.submission.job.postedBy.email}
+                                  {report?.submission?.job?.postedBy?.email}
                                 </p>
                               </div>
                             </div>
@@ -228,7 +233,7 @@ const ReportManagement = () => {
                                 Job CreatorBy Name
                               </label>
                               <p className="text-sm text-muted-foreground">
-                                {report.submission.job.postedBy.name}
+                                {report?.submission?.job?.postedBy?.name}
                               </p>
                             </div>
 
@@ -237,7 +242,7 @@ const ReportManagement = () => {
                                 Report Reason
                               </label>
                               <div className="bg-muted p-4 rounded-lg mt-1">
-                                <p className="text-sm">{report.reason}</p>
+                                <p className="text-sm">{report?.reason}</p>
                               </div>
                             </div>
                             <div>
@@ -245,7 +250,7 @@ const ReportManagement = () => {
                                 Admin Notes
                               </label>
                               <div className="bg-muted p-4 rounded-lg mt-1">
-                                <p className="text-sm">{report.adminNotes}</p>
+                                <p className="text-sm">{report?.adminNotes}</p>
                               </div>
                             </div>
                             {report.adminResponse && (

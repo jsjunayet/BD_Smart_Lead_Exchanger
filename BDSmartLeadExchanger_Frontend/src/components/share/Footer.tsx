@@ -20,7 +20,7 @@ export const Footer = () => {
                 />{" "}
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                Smart Lead Exchange
+                BDSmartLeadX
               </span>
             </div>
             <p className="text-gray-400 text-sm">

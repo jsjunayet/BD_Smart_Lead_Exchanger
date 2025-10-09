@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PageHeaderSkeleton, SearchFilterSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import {
   Select,
   SelectContent,
@@ -20,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TableSkeleton } from "@/components/ui/skeletons";
 import {
   Table,
   TableBody,
@@ -283,353 +283,373 @@ export default function AdminUsers() {
               </TableHeader>
               <TableBody>
                 {paginatedUsers?.map((user: any) => (
-                <TableRow key={user._id} className="hover:bg-muted/20">
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.image} alt={user.name} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                          {user.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
+                  <TableRow key={user._id} className="hover:bg-muted/20">
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src={user.ProfileImage}
+                            alt={user.name}
+                          />
+                          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                            {user.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-foreground flex items-center gap-2">
+                            {user.name}
+                            {user.role === "admin" && (
+                              <Crown className="h-4 w-4 text-warning" />
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {user.userName}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <div>
-                        <div className="font-medium text-foreground flex items-center gap-2">
-                          {user.name}
-                          {user.role === "admin" && (
-                            <Crown className="h-4 w-4 text-warning" />
-                          )}
+                        <div className="text-sm text-foreground">
+                          {user.email}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {user.userName}
+                          {user.phoneNumber}
                         </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
+                    </TableCell>
+                    <TableCell>
                       <div className="text-sm text-foreground">
-                        {user.email}
+                        {user.city}, {user.country}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {user.phoneNumber}
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="text-sm font-medium text-foreground">
+                          ${user.wallet}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Surfing: {user.surfingBalance}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm text-foreground">
-                      {user.city}, {user.country}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="text-sm font-medium text-foreground">
-                        ${user.wallet}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Surfing: {user.surfingBalance}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={user.role}
-                      disabled={user.role === "superAdmin"} // ✅ superAdmin হলে পরিবর্তন করা যাবে না
-                      onValueChange={(value: "admin" | "user") =>
-                        handleRoleChange(user._id, value)
-                      }
-                    >
-                      <SelectTrigger className="w-[100px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">
-                          <div className="flex items-center gap-2">
-                            <UserIcon className="h-4 w-4" />
-                            User
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="admin">
-                          <div className="flex items-center gap-2">
-                            <Crown className="h-4 w-4" />
-                            Admin
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-
-                  <TableCell className=" text-right">
-                    <div className="flex items-center space-x-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={user.role === "superAdmin"}
-                            onClick={() => setSelectedUser(user)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>User Details</DialogTitle>
-                            <DialogDescription>
-                              Full information of{" "}
-                              <strong>{selectedUser?.name}</strong>
-                            </DialogDescription>
-                          </DialogHeader>
-
-                          {selectedUser ? (
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <p className="text-muted-foreground">Name</p>
-                                <p className="font-medium">
-                                  {selectedUser.name}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">
-                                  Username
-                                </p>
-                                <p className="font-medium">
-                                  @{selectedUser.userName}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Email</p>
-                                <p className="font-medium">
-                                  {selectedUser.email}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Phone</p>
-                                <p className="font-medium">
-                                  {selectedUser.phoneNumber}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Country</p>
-                                <p className="font-medium">
-                                  {selectedUser.country}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">City</p>
-                                <p className="font-medium">
-                                  {selectedUser.city}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">
-                                  Affiliate Network
-                                </p>
-                                <p className="font-medium">
-                                  {selectedUser.affiliateNetworkName}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">
-                                  Publisher ID
-                                </p>
-                                <p className="font-medium">
-                                  {selectedUser.publisherId}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Role</p>
-                                <p className="font-medium">
-                                  {selectedUser.role}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Wallet</p>
-                                <p className="font-medium">
-                                  ${selectedUser.wallet}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">
-                                  Surfing Balance
-                                </p>
-                                <p className="font-medium">
-                                  ${selectedUser.surfingBalance}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">
-                                  Approved
-                                </p>
-                                <p className="font-medium">
-                                  {selectedUser.isApproved ? "Yes" : "No"}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Status</p>
-                                <p className="font-medium">
-                                  {selectedUser.status ? "Active" : "Inactive"}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">
-                                  Created At
-                                </p>
-                                <p className="font-medium">
-                                  {new Date(
-                                    selectedUser.createdAt
-                                  ).toLocaleString()}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">
-                                  Updated At
-                                </p>
-                                <p className="font-medium">
-                                  {new Date(
-                                    selectedUser.updatedAt
-                                  ).toLocaleString()}
-                                </p>
-                              </div>
-
-                              {/* Profile Image */}
-                              {selectedUser.image && (
-                                <div className="col-span-2 pt-4">
-                                  <p className="text-muted-foreground">
-                                    Profile ID ScreenShot
-                                  </p>
-                                  <Image
-                                    height={500}
-                                    width={500}
-                                    src={selectedUser.image}
-                                    alt={selectedUser.name}
-                                    onClick={() =>
-                                      setShowViewer((prev) => !prev)
-                                    }
-                                    className="w-24 h-24 rounded-full border mt-1"
-                                  />
-                                </div>
-                              )}
-                              {showViewer && (
-                                <ScreenshotViewer
-                                  screenshots={[selectedUser.image]}
-                                  titles={["Profile Image"]}
-                                  professionalName={
-                                    selectedUser.email || selectedUser.name
-                                  }
-                                  professionalImage={
-                                    selectedUser.image || "/placeholder.svg"
-                                  }
-                                  maxPreview={4}
-                                />
-                              )}
-                              {user?.isApproved === false && (
-                                <div className="space-y-3">
-                                  <div className="flex space-x-2">
-                                    <Button
-                                      disabled={isLoading}
-                                      onClick={() =>
-                                        handleStatusUpdate(user._id, "approved")
-                                      }
-                                      className="bg-green-500 hover:bg-green-600"
-                                    >
-                                      <Check className="h-4 w-4 mr-2" />
-                                      {isLoading ? "Approve..." : "Approve"}
-                                    </Button>
-                                    <Button
-                                      disabled={isLoading}
-                                      onClick={() =>
-                                        handleStatusUpdate(user._id, "rejected")
-                                      }
-                                      variant="destructive"
-                                    >
-                                      <X className="h-4 w-4 mr-2" />
-
-                                      {isLoading ? " Reject..." : " Reject"}
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={user.role}
+                        disabled={user.role === "superAdmin"} // ✅ superAdmin হলে পরিবর্তন করা যাবে না
+                        onValueChange={(value: "admin" | "user") =>
+                          handleRoleChange(user._id, value)
+                        }
+                      >
+                        <SelectTrigger className="w-[100px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">
+                            <div className="flex items-center gap-2">
+                              <UserIcon className="h-4 w-4" />
+                              User
                             </div>
-                          ) : (
-                            <p className="text-center text-muted-foreground">
-                              No user selected
-                            </p>
-                          )}
-                        </DialogContent>
-                      </Dialog>
-                      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                            disabled={
-                              // Rule:
-                              // 1. Admin cannot delete another admin
-                              (currentUser?.role === "admin" &&
-                                user?.role === "admin") ||
-                              // 2. SuperAdmin can never be deleted by anyone
-                              user.role === "superAdmin"
-                            }
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Delete User</DialogTitle>
-                            <DialogDescription>
-                              Are you sure you want to delete{" "}
-                              <strong>{user.name}</strong>? This action cannot
-                              be undone and will permanently remove all user
-                              data.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter>
+                          </SelectItem>
+                          <SelectItem value="admin">
+                            <div className="flex items-center gap-2">
+                              <Crown className="h-4 w-4" />
+                              Admin
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+
+                    <TableCell className=" text-right">
+                      <div className="flex items-center space-x-2">
+                        <Dialog>
+                          <DialogTrigger asChild>
                             <Button
                               variant="outline"
-                              onClick={() => setIsModalOpen(false)}
+                              size="sm"
+                              disabled={user.role === "superAdmin"}
+                              onClick={() => setSelectedUser(user)}
                             >
-                              Cancel
+                              <Eye className="h-4 w-4" />
                             </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>User Details</DialogTitle>
+                              <DialogDescription>
+                                Full information of{" "}
+                                <strong>{selectedUser?.name}</strong>
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            {selectedUser ? (
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="text-muted-foreground">Name</p>
+                                  <p className="font-medium">
+                                    {selectedUser.name}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Username
+                                  </p>
+                                  <p className="font-medium">
+                                    @{selectedUser.userName}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">Email</p>
+                                  <p className="font-medium">
+                                    {selectedUser.email}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">Phone</p>
+                                  <p className="font-medium">
+                                    {selectedUser.phoneNumber}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Country
+                                  </p>
+                                  <p className="font-medium">
+                                    {selectedUser.country}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">City</p>
+                                  <p className="font-medium">
+                                    {selectedUser.city}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Affiliate Network
+                                  </p>
+                                  <p className="font-medium">
+                                    {selectedUser.affiliateNetworkName}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Publisher ID
+                                  </p>
+                                  <p className="font-medium">
+                                    {selectedUser.publisherId}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">Role</p>
+                                  <p className="font-medium">
+                                    {selectedUser.role}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Wallet
+                                  </p>
+                                  <p className="font-medium">
+                                    ${selectedUser.wallet}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Surfing Balance
+                                  </p>
+                                  <p className="font-medium">
+                                    ${selectedUser.surfingBalance}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Approved
+                                  </p>
+                                  <p className="font-medium">
+                                    {selectedUser.isApproved ? "Yes" : "No"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Status
+                                  </p>
+                                  <p className="font-medium">
+                                    {selectedUser.status
+                                      ? "Active"
+                                      : "Inactive"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Created At
+                                  </p>
+                                  <p className="font-medium">
+                                    {new Date(
+                                      selectedUser.createdAt
+                                    ).toLocaleString()}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">
+                                    Updated At
+                                  </p>
+                                  <p className="font-medium">
+                                    {new Date(
+                                      selectedUser.updatedAt
+                                    ).toLocaleString()}
+                                  </p>
+                                </div>
+
+                                {/* Profile Image */}
+                                {selectedUser.image && (
+                                  <div className="col-span-2 pt-4">
+                                    <p className="text-muted-foreground">
+                                      Profile ID ScreenShot
+                                    </p>
+                                    <Image
+                                      height={500}
+                                      width={500}
+                                      src={selectedUser.image}
+                                      alt={selectedUser.name}
+                                      onClick={() =>
+                                        setShowViewer((prev) => !prev)
+                                      }
+                                      className="w-24 h-24 rounded-full border mt-1"
+                                    />
+                                  </div>
+                                )}
+                                {showViewer && (
+                                  <ScreenshotViewer
+                                    screenshots={[selectedUser.image]}
+                                    titles={["Profile Image"]}
+                                    professionalName={
+                                      selectedUser.email || selectedUser.name
+                                    }
+                                    professionalImage={
+                                      selectedUser.image || "/placeholder.svg"
+                                    }
+                                    maxPreview={4}
+                                  />
+                                )}
+                                {user?.isApproved === false && (
+                                  <div className="space-y-3">
+                                    <div className="flex space-x-2">
+                                      <Button
+                                        disabled={isLoading}
+                                        onClick={() =>
+                                          handleStatusUpdate(
+                                            user._id,
+                                            "approved"
+                                          )
+                                        }
+                                        className="bg-green-500 hover:bg-green-600"
+                                      >
+                                        <Check className="h-4 w-4 mr-2" />
+                                        {isLoading ? "Approve..." : "Approve"}
+                                      </Button>
+                                      <Button
+                                        disabled={isLoading}
+                                        onClick={() =>
+                                          handleStatusUpdate(
+                                            user._id,
+                                            "rejected"
+                                          )
+                                        }
+                                        variant="destructive"
+                                      >
+                                        <X className="h-4 w-4 mr-2" />
+
+                                        {isLoading ? " Reject..." : " Reject"}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-center text-muted-foreground">
+                                No user selected
+                              </p>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                        <Dialog
+                          open={isModalOpen}
+                          onOpenChange={setIsModalOpen}
+                        >
+                          <DialogTrigger asChild>
                             <Button
-                              variant="destructive"
-                              onClick={() => handleDeleteUser(user._id)}
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
                               disabled={
+                                // Rule:
+                                // 1. Admin cannot delete another admin
                                 (currentUser?.role === "admin" &&
                                   user?.role === "admin") ||
-                                user?.role === "superAdmin"
+                                // 2. SuperAdmin can never be deleted by anyone
+                                user.role === "superAdmin"
                               }
                             >
-                              Delete User
+                              <Trash2 className="h-4 w-4" />
                             </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={
-                          // Rule:
-                          // 1. Admin cannot delete another admin
-                          (currentUser?.role === "admin" &&
-                            user?.role === "admin") ||
-                          user.role === "user"
-                        }
-                        onClick={() => handleUpdate(user._id)}
-                      >
-                        <Home
-                          className={`h-5 w-5 transition-colors ${
-                            user.home ? "text-green-500" : "text-gray-400"
-                          }`}
-                        />{" "}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete User</DialogTitle>
+                              <DialogDescription>
+                                Are you sure you want to delete{" "}
+                                <strong>{user.name}</strong>? This action cannot
+                                be undone and will permanently remove all user
+                                data.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsModalOpen(false)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={() => handleDeleteUser(user._id)}
+                                disabled={
+                                  (currentUser?.role === "admin" &&
+                                    user?.role === "admin") ||
+                                  user?.role === "superAdmin"
+                                }
+                              >
+                                Delete User
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={
+                            // Rule:
+                            // 1. Admin cannot delete another admin
+                            (currentUser?.role === "admin" &&
+                              user?.role === "admin") ||
+                            user.role === "user"
+                          }
+                          onClick={() => handleUpdate(user._id)}
+                        >
+                          <Home
+                            className={`h-5 w-5 transition-colors ${
+                              user.home ? "text-green-500" : "text-gray-400"
+                            }`}
+                          />{" "}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

@@ -15,9 +15,7 @@ export const startCronJobs = () => {
   //   }
   //   console.log('✅ Daily wallet deduction done');
   // });
-  cron.schedule('*/10 * * * *', async () => {
-    console.log('⏳ Deducting 0.05 from all users...');
-
+  cron.schedule('0 0 * * *', async () => {
     const users = await User.find();
     for (const u of users) {
       if (u.wallet > 0) {
@@ -29,7 +27,7 @@ export const startCronJobs = () => {
     console.log('✅ 0.05 deducted from all wallets successfully');
   });
 
-  cron.schedule('*/5 * * * *', async () => {
+  cron.schedule('0 */2 * * *', async () => {
     console.log('⏳ Checking pending submissions for auto-approval...');
 
     const session = await mongoose.startSession();
@@ -64,10 +62,11 @@ export const startCronJobs = () => {
         if (!owner) continue;
 
         // ✅ এখন 2 মিনিটের বেশি পুরানো submissions filter করবো
+        // পুরোনো submissions filter করা (2 ঘণ্টা = 7200 সেকেন্ড)
         const expiredSubs = subs.filter((s) => {
           const diffInSeconds =
             (now.getTime() - s.submittedAt.getTime()) / 1000;
-          return diffInSeconds > 120; // 2 মিনিট = 120 সেকেন্ড
+          return diffInSeconds > 7200; // 2 hours
         });
 
         if (expiredSubs.length === 0) continue;

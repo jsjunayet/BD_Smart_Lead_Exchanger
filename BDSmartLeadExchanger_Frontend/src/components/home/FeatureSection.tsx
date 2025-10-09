@@ -101,14 +101,15 @@ const FeaturesSection = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="relative w-full max-w-4xl mx-auto aspect-video">
             <iframe
-              className="w-full h-full rounded-lg"
-              src="https://www.youtube.com/embed/9rVaxS23hhk?autoplay=1"
-              title="YouTube video"
-              frameBorder="0"
+              width="560"
+              height="315"
+              src="https://www.youtube.com/embed/1yFWqYWT66E?si=NMkLROCXXV9papRE"
+              title="YouTube video player"
+              frameborder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-            />
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen
+            ></iframe>
             {/* Close Button */}
             <button
               onClick={() => setShowVideo(false)}
