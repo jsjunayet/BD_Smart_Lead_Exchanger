@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PageHeaderSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import {
   Table,
   TableBody,
@@ -51,14 +52,19 @@ export default function AdminPaymentSetup() {
     number: "",
   });
   const [loading, setloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Fetch data from backend
   const fetchPaymentRates = async () => {
     try {
+      setIsLoading(true);
       const data = await getAllPaymentSetup();
       console.log(data.data);
       setPaymentRates(data?.data || []);
     } catch (error: any) {
       toast("Error fetching payment setups");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -111,14 +117,17 @@ export default function AdminPaymentSetup() {
 
   return (
     <div className="space-y-6">
-      <div className="md:flex justify-between items-start">
-        <h1 className="text-3xl font-bold mb-2 md:mb-0">Payment Setup</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" /> Add Payment Rate
-            </Button>
-          </DialogTrigger>
+      {isLoading ? (
+        <PageHeaderSkeleton />
+      ) : (
+        <div className="md:flex justify-between items-start">
+          <h1 className="text-3xl font-bold mb-2 md:mb-0">Payment Setup</h1>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" /> Add Payment Rate
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
@@ -195,49 +204,54 @@ export default function AdminPaymentSetup() {
         </Dialog>
       </div>
 
+)}  
       {/* Payment Rates Table */}
       <Card className="bg-gradient-card shadow-card border-0">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Payment Type</TableHead>
-                <TableHead>Payment Number</TableHead>
-                <TableHead>Rate</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paymentRates.map((rate) => (
-                <TableRow key={rate._id} className="hover:bg-muted/20">
-                  <TableCell className="font-medium flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-primary" /> {rate.type}
-                  </TableCell>
-                  <TableCell>{rate.number} </TableCell>
-
-                  <TableCell>{rate.rate} tk</TableCell>
-                  <TableCell className="text-right flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(rate)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={user?.role !== "superAdmin"}
-                      className="text-destructive"
-                      onClick={() => handleDelete(rate._id!)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          {isLoading ? (
+            <TableSkeleton rows={5} columns={4} />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Payment Type</TableHead>
+                  <TableHead>Payment Number</TableHead>
+                  <TableHead>Rate</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paymentRates.map((rate) => (
+                  <TableRow key={rate._id} className="hover:bg-muted/20">
+                    <TableCell className="font-medium flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-primary" /> {rate.type}
+                    </TableCell>
+                    <TableCell>{rate.number} </TableCell>
+
+                    <TableCell>{rate.rate} tk</TableCell>
+                    <TableCell className="text-right flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(rate)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={user?.role !== "superAdmin"}
+                        className="text-destructive"
+                        onClick={() => handleDelete(rate._id!)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

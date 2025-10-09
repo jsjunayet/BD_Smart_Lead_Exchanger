@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScreenshotViewer } from "@/components/ui/screenshot-viewer";
+import { PageHeaderSkeleton, SearchFilterSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import {
   Table,
   TableBody,
@@ -72,6 +73,7 @@ const MyJobs = () => {
 
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [myJobsData, setMyJobsData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   // --- Add this state at top level ---
   const [submissions, setSubmissions] = useState<{ [key: string]: number }>({});
 
@@ -118,9 +120,16 @@ const MyJobs = () => {
     fetchData();
   }, []);
   const fetchData = async () => {
-    const response = await getAlljobs();
-    console.log(response);
-    setMyJobsData(response.data || []);
+    try {
+      setIsLoading(true);
+      const response = await getAlljobs();
+      console.log(response);
+      setMyJobsData(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch jobs", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Function to get badge color based on submission status
@@ -220,19 +229,40 @@ const MyJobs = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            My Jobs
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your posted jobs and track progress
-          </p>
+      {isLoading ? (
+        <PageHeaderSkeleton />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              My Jobs
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Manage your posted jobs and track progress
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <Card key={index}>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-lg bg-muted animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+                    <div className="h-5 w-8 bg-muted rounded animate-pulse"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -304,23 +334,31 @@ const MyJobs = () => {
           </CardContent>
         </Card>
       </div>
+      )}
 
       {/* Search */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search jobs, Creator Email, Creator Name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {isLoading ? (
+        <SearchFilterSkeleton />
+      ) : (
+        <Card>
+          <CardContent className="p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search jobs, Creator Email, Creator Name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Jobs List */}
+      {isLoading ? (
+        <TableSkeleton rows={5} columns={6} />
+      ) : (
       <div className="space-y-4">
         {filteredData.map((job) => {
           const filteredSubmissions = getFilteredSubmissions(job);
@@ -627,7 +665,7 @@ const MyJobs = () => {
           );
         })}
       </div>
-
+)}  
       {filteredData.length === 0 && (
         <Card>
           <CardContent className="text-center py-8">

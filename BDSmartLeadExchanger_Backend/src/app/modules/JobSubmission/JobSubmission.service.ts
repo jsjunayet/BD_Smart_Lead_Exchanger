@@ -148,13 +148,11 @@ export const reviewSubmission = async (
 ): Promise<IJobSubmission> => {
   const session = await mongoose.startSession();
   session.startTransaction();
-
   try {
     const submission = await JobSubmission.findById(submissionId)
       .populate('job')
       .populate('user')
       .session(session);
-
     if (!submission) {
       throw new AppError(httpStatus.NOT_FOUND, 'Submission not found');
     }
@@ -192,15 +190,20 @@ export const reviewSubmission = async (
 // ---------------------------
 
 async function handleAdminReview(
-  submission: IJobSubmission,
-  action: 'approve' | 'reject',
+  submission: any,
+  action: any,
   session: ClientSession,
 ): Promise<void> {
-  if (action === 'approve') {
+  if (action.action === 'approve') {
     submission.status = 'approved';
     await User.findByIdAndUpdate(
-      submission.user,
+      submission.user._id,
       { $inc: { surfingBalance: 1 } },
+      { session },
+    );
+    await User.findByIdAndUpdate(
+      submission.job.postedBy,
+      { $inc: { surfingBalance: -1 } },
       { session },
     );
   } else {
@@ -213,7 +216,7 @@ async function handleRegularUserReview(
   submission: any,
   currentUser: IUser | null,
   ownerId: string,
-  action: 'approve' | 'reject',
+  action: any,
   session: ClientSession,
 ): Promise<void> {
   if (submission.job.postedBy.toString() !== ownerId.toString()) {
@@ -227,7 +230,7 @@ async function handleRegularUserReview(
     throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient balance');
   }
 
-  if (action === 'approve') {
+  if (action.action === 'approve') {
     submission.status = 'approved';
 
     if (currentUser.surfingBalance <= 0) {
@@ -241,7 +244,7 @@ async function handleRegularUserReview(
     await currentUser.save({ session });
 
     await User.findByIdAndUpdate(
-      submission.user,
+      submission.user._id,
       { $inc: { surfingBalance: 1 } },
       { session },
     );

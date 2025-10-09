@@ -10,7 +10,7 @@ const reportSchema = new Schema<IReport>(
       required: true,
     },
     reason: { type: String, required: true, trim: true },
-    adminNotes: { type: String, required: true, default: '', trim: true },
+    adminNotes: { type: String, default: '', trim: true },
 
     status: {
       type: String,

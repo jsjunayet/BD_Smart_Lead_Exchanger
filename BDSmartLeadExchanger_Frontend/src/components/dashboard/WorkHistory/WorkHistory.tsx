@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScreenshotViewer } from "@/components/ui/screenshot-viewer";
+import { TableSkeleton } from "@/components/ui/skeletons";
 import {
   Table,
   TableBody,
@@ -90,7 +91,7 @@ export const WorkHistory = () => {
   const [Submission, setSubmission] = useState<any | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [isLoading, setisloading] = useState(false);
+  const [isLoading, setisloading] = useState(true);
   const [reportReason, setReportReason] = useState("");
   const itemsPerPage = 5;
   const [userReports, setUserReports] = useState<{ [key: string]: any }>({});
@@ -165,9 +166,11 @@ export const WorkHistory = () => {
       toast.error("Please provide a reason for the report");
       return;
     }
-    const payload = { submission: id, reason: reportReason };
+    const payload = { submission: id, reason: reportReason, adminNotes: "" };
+
     setisloading(true);
     const res = await createReportService(payload);
+    console.log(res);
     if (res.success) {
       setisloading(false);
       toast.success("Report submitted successfully. Admin will review it.");
@@ -194,11 +197,14 @@ export const WorkHistory = () => {
   }, []);
   const fetchJobs = async () => {
     try {
+      setisloading(true);
       const res = await getOwnSubmission();
       console.log(res);
       setSubmission(res?.data);
     } catch (error) {
       console.error("Error fetching workplace jobs");
+    } finally {
+      setisloading(false);
     }
   };
   useEffect(() => {
@@ -222,245 +228,250 @@ export const WorkHistory = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="md:flex  items-center justify-between">
-            <span className=" mb-2 md:mb-0">Work History</span>
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search jobs..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
-                />
+          <CardTitle className="md:flex items-center justify-between">
+            <span className="mb-2 md:mb-0">Work History</span>
+            {!isLoading && (
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search jobs..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 w-64"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Job Details</TableHead>
-                  <TableHead>Job Post Creator Info</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Proof Screenshots</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentData?.map((item: any) => (
-                  <TableRow key={item._id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{item.job.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {item.job.description}
-                        </div>
-                        <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                          <span>ID: {item.job._id.slice(-8)}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={item.job.postedBy.ProfileImage} />
-                          <AvatarFallback>
-                            {item.job.postedBy.name
-                              .split(" ")
-                              .map((n: any) => n[0])
-                              .join("")
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">
-                            {item.job.postedBy.name}
-                          </div>
+            {isLoading ? (
+              <TableSkeleton rows={5} columns={6} />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Job Details</TableHead>
+                    <TableHead>Job Post Creator Info</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Proof Screenshots</TableHead>
+                    <TableHead>Submitted</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {currentData?.map((item: any) => (
+                    <TableRow key={item._id}>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{item.job.title}</div>
                           <div className="text-sm text-muted-foreground">
-                            {item.job.postedBy.email}
+                            {item.job.description}
+                          </div>
+                          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                            <span>ID: {item.job._id.slice(-8)}</span>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(item.status)}
-                        {getStatusBadge(item.status)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm">
-                          {item.proofScreenshots.length} files
-                        </span>
-                        {item.proofScreenshots.length > 0 && (
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={item.job.postedBy.ProfileImage} />
+                            <AvatarFallback>
+                              {item.job.postedBy.name
+                                .split(" ")
+                                .map((n: any) => n[0])
+                                .join("")
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">
+                              {item.job.postedBy.name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {item.job.postedBy.email}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(item.status)}
+                          {getStatusBadge(item.status)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm">
+                            {item.proofScreenshots.length} files
+                          </span>
+                          {item.proofScreenshots.length > 0 && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-6xl max-h-screen">
+                                <DialogHeader>
+                                  <DialogTitle>
+                                    Professional Screenshots
+                                  </DialogTitle>
+                                </DialogHeader>
+                                <ScreenshotViewer
+                                  screenshots={item.proofScreenshots}
+                                  titles={item.job.screenshotTitles}
+                                  professionalName={item.user.name}
+                                  professionalImage={item.user.image}
+                                  maxPreview={4}
+                                />
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>
+                            {new Date(item.submittedAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-muted-foreground">
+                            {new Date(item.submittedAt).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button variant="outline" size="sm">
-                                <Eye className="h-3 w-3" />
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-6xl max-h-screen">
+                            <DialogContent className="max-w-4xl  h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                               <DialogHeader>
-                                <DialogTitle>
-                                  Professional Screenshots
-                                </DialogTitle>
+                                <DialogTitle>Submission Details</DialogTitle>
                               </DialogHeader>
-                              <ScreenshotViewer
-                                screenshots={item.proofScreenshots}
-                                titles={item.job.screenshotTitles}
-                                professionalName={item.user.name}
-                                professionalImage={item.user.image}
-                                maxPreview={4}
-                              />
+                              <div className="space-y-6">
+                                <div className="grid  grid-cols-1 gap-6">
+                                  <Card>
+                                    <CardHeader>
+                                      <CardTitle className="text-lg">
+                                        Job Information
+                                      </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-2">
+                                      <div>
+                                        <span className="font-medium">
+                                          Title:
+                                        </span>
+                                        <p className="text-muted-foreground">
+                                          {item.job.title}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">
+                                          Description:
+                                        </span>
+                                        <p className="text-muted-foreground">
+                                          {item.job.description}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">
+                                          Job URL:
+                                        </span>
+                                        <p className="text-muted-foreground break-all">
+                                          {item.job.jobUrl}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">
+                                          Screenshot Requirements:
+                                        </span>
+                                        <ul className="text-muted-foreground list-disc list-inside">
+                                          {item.job.screenshotTitles.map(
+                                            (title: any, index: any) => (
+                                              <li key={index}>{title}</li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+
+                                  <Card>
+                                    <CardHeader>
+                                      <CardTitle className="text-lg">
+                                        Submission Details
+                                      </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-2">
+                                      <div>
+                                        <span className="font-medium">
+                                          Submission Email:
+                                        </span>
+                                        <p className="text-muted-foreground font-mono">
+                                          {item.user.email}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">
+                                          Status:
+                                        </span>
+                                        <div className="mt-1">
+                                          {getStatusBadge(item.status)}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">
+                                          Submitted At:
+                                        </span>
+                                        <p className="text-muted-foreground">
+                                          {new Date(
+                                            item.submittedAt
+                                          ).toLocaleString()}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">
+                                          Proof Files:
+                                        </span>
+                                        <p className="text-muted-foreground">
+                                          {item.proofScreenshots.length}{" "}
+                                          screenshots uploaded
+                                        </p>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                </div>
+
+                                {item.proofScreenshots.length > 0 && (
+                                  <Card>
+                                    <CardHeader>
+                                      <CardTitle className="text-lg">
+                                        Professional Screenshots
+                                      </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <ScreenshotViewer
+                                        screenshots={item.proofScreenshots}
+                                        titles={item.job.screenshotTitles}
+                                        professionalName={item.user.name}
+                                        professionalImage={item.user.image}
+                                        maxPreview={6}
+                                      />
+                                    </CardContent>
+                                  </Card>
+                                )}
+                              </div>
                             </DialogContent>
                           </Dialog>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>
-                          {new Date(item.submittedAt).toLocaleDateString()}
-                        </div>
-                        <div className="text-muted-foreground">
-                          {new Date(item.submittedAt).toLocaleTimeString()}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-4xl  h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                            <DialogHeader>
-                              <DialogTitle>Submission Details</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-6">
-                              <div className="grid  grid-cols-1 gap-6">
-                                <Card>
-                                  <CardHeader>
-                                    <CardTitle className="text-lg">
-                                      Job Information
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent className="space-y-2">
-                                    <div>
-                                      <span className="font-medium">
-                                        Title:
-                                      </span>
-                                      <p className="text-muted-foreground">
-                                        {item.job.title}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">
-                                        Description:
-                                      </span>
-                                      <p className="text-muted-foreground">
-                                        {item.job.description}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">
-                                        Job URL:
-                                      </span>
-                                      <p className="text-muted-foreground break-all">
-                                        {item.job.jobUrl}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">
-                                        Screenshot Requirements:
-                                      </span>
-                                      <ul className="text-muted-foreground list-disc list-inside">
-                                        {item.job.screenshotTitles.map(
-                                          (title: any, index: any) => (
-                                            <li key={index}>{title}</li>
-                                          )
-                                        )}
-                                      </ul>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-
-                                <Card>
-                                  <CardHeader>
-                                    <CardTitle className="text-lg">
-                                      Submission Details
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent className="space-y-2">
-                                    <div>
-                                      <span className="font-medium">
-                                        Submission Email:
-                                      </span>
-                                      <p className="text-muted-foreground font-mono">
-                                        {item.user.email}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">
-                                        Status:
-                                      </span>
-                                      <div className="mt-1">
-                                        {getStatusBadge(item.status)}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">
-                                        Submitted At:
-                                      </span>
-                                      <p className="text-muted-foreground">
-                                        {new Date(
-                                          item.submittedAt
-                                        ).toLocaleString()}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">
-                                        Proof Files:
-                                      </span>
-                                      <p className="text-muted-foreground">
-                                        {item.proofScreenshots.length}{" "}
-                                        screenshots uploaded
-                                      </p>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              </div>
-
-                              {item.proofScreenshots.length > 0 && (
-                                <Card>
-                                  <CardHeader>
-                                    <CardTitle className="text-lg">
-                                      Professional Screenshots
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent>
-                                    <ScreenshotViewer
-                                      screenshots={item.proofScreenshots}
-                                      titles={item.job.screenshotTitles}
-                                      professionalName={item.user.name}
-                                      professionalImage={item.user.image}
-                                      maxPreview={6}
-                                    />
-                                  </CardContent>
-                                </Card>
-                              )}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        {/* 
+                          {/* 
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm">
@@ -523,117 +534,119 @@ export const WorkHistory = () => {
                           </DialogContent>
                         </Dialog> */}
 
-                        {item.status === "rejected" && (
-                          <>
-                            {userReports[item._id] ? (
-                              // ✅ Report already exists
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-primary"
-                                  >
-                                    <Eye className="h-4 w-4 mr-1" />
-                                    View Report
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Report Details</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="space-y-3">
-                                    <p>
-                                      <strong>Submission ID:</strong> {item._id}
-                                    </p>
-                                    <p>
-                                      <strong>Reason:</strong>{" "}
-                                      {userReports[item._id].reason}
-                                    </p>
-                                    <p>
-                                      <strong>Admin Notes:</strong>{" "}
-                                      {userReports[item._id].adminNotes}
-                                    </p>
-                                    <p>
-                                      <strong>Status:</strong>{" "}
-                                      {userReports[item._id].status}
-                                    </p>
-                                    <p>
-                                      <strong>Reported At:</strong>{" "}
-                                      {new Date(
-                                        userReports[item._id].createdAt
-                                      ).toLocaleString()}
-                                    </p>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            ) : (
-                              // ✅ Report button if not reported yet
-                              <Dialog
-                                open={dialogOpen}
-                                onOpenChange={setDialogOpen}
-                              >
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-destructive"
-                                    onClick={() => {
-                                      setSelectedItem(item);
-                                      setDialogOpen(true);
-                                    }}
-                                  >
-                                    <Flag className="h-4 w-4 mr-1" />
-                                    Report
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>
-                                      Report Submission Issue
-                                    </DialogTitle>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    <Textarea
-                                      placeholder="Describe the issue..."
-                                      value={reportReason}
-                                      onChange={(e) =>
-                                        setReportReason(e.target.value)
-                                      }
-                                      rows={4}
-                                    />
-                                    <div className="flex justify-end space-x-2">
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => setDialogOpen(false)}
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        onClick={() => handleReport(item._id)}
-                                      >
-                                        {isLoading ? (
-                                          <>
-                                            <Loader2 className="h-5 w-5 animate-spin" />
-                                            Submitting...
-                                          </>
-                                        ) : (
-                                          "Submit Report"
-                                        )}
-                                      </Button>
+                          {item.status === "rejected" && (
+                            <>
+                              {userReports[item._id] ? (
+                                // ✅ Report already exists
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-primary"
+                                    >
+                                      <Eye className="h-4 w-4 mr-1" />
+                                      View Report
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Report Details</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-3">
+                                      <p>
+                                        <strong>Submission ID:</strong>{" "}
+                                        {item._id}
+                                      </p>
+                                      <p>
+                                        <strong>Reason:</strong>{" "}
+                                        {userReports[item._id].reason}
+                                      </p>
+                                      <p>
+                                        <strong>Admin Notes:</strong>{" "}
+                                        {userReports[item._id].adminNotes}
+                                      </p>
+                                      <p>
+                                        <strong>Status:</strong>{" "}
+                                        {userReports[item._id].status}
+                                      </p>
+                                      <p>
+                                        <strong>Reported At:</strong>{" "}
+                                        {new Date(
+                                          userReports[item._id].createdAt
+                                        ).toLocaleString()}
+                                      </p>
                                     </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                                  </DialogContent>
+                                </Dialog>
+                              ) : (
+                                // ✅ Report button if not reported yet
+                                <Dialog
+                                  open={dialogOpen}
+                                  onOpenChange={setDialogOpen}
+                                >
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-destructive"
+                                      onClick={() => {
+                                        setSelectedItem(item);
+                                        setDialogOpen(true);
+                                      }}
+                                    >
+                                      <Flag className="h-4 w-4 mr-1" />
+                                      Report
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>
+                                        Report Submission Issue
+                                      </DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      <Textarea
+                                        placeholder="Describe the issue..."
+                                        value={reportReason}
+                                        onChange={(e) =>
+                                          setReportReason(e.target.value)
+                                        }
+                                        rows={4}
+                                      />
+                                      <div className="flex justify-end space-x-2">
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => setDialogOpen(false)}
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button
+                                          onClick={() => handleReport(item._id)}
+                                        >
+                                          {isLoading ? (
+                                            <>
+                                              <Loader2 className="h-5 w-5 animate-spin" />
+                                              Submitting...
+                                            </>
+                                          ) : (
+                                            "Submit Report"
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
 
           {/* Pagination */}

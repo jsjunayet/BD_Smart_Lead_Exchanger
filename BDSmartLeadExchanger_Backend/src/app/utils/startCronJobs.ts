@@ -5,20 +5,31 @@ import { User } from '../modules/Auth/auth.model';
 import { JobSubmission } from '../modules/JobSubmission/JobSubmission.model';
 
 export const startCronJobs = () => {
-  // ✅ Daily $0.5 deduction
-  cron.schedule('0 0 * * *', async () => {
+  // cron.schedule('0 0 * * *', async () => {
+  //   const users = await User.find();
+  //   for (const u of users) {
+  //     if (u.wallet > 0) {
+  //       u.wallet = Math.max(0, Number((u.wallet - 0.05).toFixed(2)));
+  //       await u.save();
+  //     }
+  //   }
+  //   console.log('✅ Daily wallet deduction done');
+  // });
+  cron.schedule('*/10 * * * *', async () => {
+    console.log('⏳ Deducting 0.05 from all users...');
+
     const users = await User.find();
     for (const u of users) {
       if (u.wallet > 0) {
-        u.wallet = Math.max(0, u.wallet - 0.05);
+        u.wallet = Math.max(0, Number((u.wallet - 0.05).toFixed(2)));
         await u.save();
       }
     }
-    console.log('✅ Daily wallet deduction done');
+
+    console.log('✅ 0.05 deducted from all wallets successfully');
   });
 
-  // ✅ 1-hour auto submission approval
-  cron.schedule('0 * * * *', async () => {
+  cron.schedule('*/5 * * * *', async () => {
     console.log('⏳ Checking pending submissions for auto-approval...');
 
     const session = await mongoose.startSession();
@@ -34,22 +45,16 @@ export const startCronJobs = () => {
         .session(session);
 
       // Owner অনুযায়ী submissions group করা
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ownerSubmissionsMap = new Map<string, any[]>();
 
       for (const sub of submissions) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const job: any = sub.job;
-
-        // Owner এর key
         const key = job.postedBy.toString();
 
-        // যদি এই owner আগে না থাকে তাহলে initialize করি
         if (!ownerSubmissionsMap.has(key)) {
           ownerSubmissionsMap.set(key, []);
         }
 
-        // এখন push করা safe
         ownerSubmissionsMap.get(key)!.push(sub);
       }
 
@@ -58,11 +63,11 @@ export const startCronJobs = () => {
         const owner = await User.findById(ownerId).session(session);
         if (!owner) continue;
 
-        // expired submissions filter
+        // ✅ এখন 2 মিনিটের বেশি পুরানো submissions filter করবো
         const expiredSubs = subs.filter((s) => {
           const diffInSeconds =
             (now.getTime() - s.submittedAt.getTime()) / 1000;
-          return diffInSeconds > 3600; // 1 ঘন্টা পেরিয়ে গেছে
+          return diffInSeconds > 120; // 2 মিনিট = 120 সেকেন্ড
         });
 
         if (expiredSubs.length === 0) continue;
@@ -84,9 +89,7 @@ export const startCronJobs = () => {
           sub.status = 'approved';
           await sub.save({ session });
 
-          // TypeScript-safe casting for populated user
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const userDoc = sub.user as any;
+          const userDoc: any = sub.user;
 
           await User.findByIdAndUpdate(
             userDoc._id,

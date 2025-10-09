@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PageHeaderSkeleton, SearchFilterSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import {
   Table,
   TableBody,
@@ -19,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Check, Eye, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface Submission {
@@ -39,6 +40,16 @@ const SubmissionManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSubmission, setSelectedSubmission] =
     useState<Submission | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+    
+  useEffect(() => {
+    // Simulate data loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const submissionsData: Submission[] = [
     {
@@ -117,28 +128,36 @@ const SubmissionManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Submission Management</h1>
-        <Badge variant="outline">Admin Panel</Badge>
-      </div>
+      {isLoading ? (
+        <PageHeaderSkeleton />
+      ) : (
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Submission Management</h1>
+          <Badge variant="outline">Admin Panel</Badge>
+        </div>
+      )}
 
       {/* Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Submissions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by job title, author name, or submission name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {isLoading ? (
+        <SearchFilterSkeleton />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Search Submissions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by job title, author name, or submission name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Submissions Table */}
       <Card>
@@ -146,20 +165,23 @@ const SubmissionManagement = () => {
           <CardTitle>All Submissions ({filteredSubmissions.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Submission ID</TableHead>
-                <TableHead>Job Title</TableHead>
-                <TableHead>Author Name</TableHead>
-                <TableHead>Submission Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted At</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSubmissions.map((submission) => (
+          {isLoading ? (
+            <TableSkeleton rows={5} columns={7} />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Submission ID</TableHead>
+                  <TableHead>Job Title</TableHead>
+                  <TableHead>Author Name</TableHead>
+                  <TableHead>Submission Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Submitted At</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredSubmissions.map((submission) => (
                 <TableRow key={submission.id}>
                   <TableCell className="font-medium">{submission.id}</TableCell>
                   <TableCell>
@@ -306,6 +328,7 @@ const SubmissionManagement = () => {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>

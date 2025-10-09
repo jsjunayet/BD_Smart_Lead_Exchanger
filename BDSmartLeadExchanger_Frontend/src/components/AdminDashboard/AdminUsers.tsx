@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { PageHeaderSkeleton, SearchFilterSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import {
   Select,
   SelectContent,
@@ -266,19 +267,22 @@ export default function AdminUsers() {
       {/* Users Table */}
       <Card className="bg-gradient-card shadow-card border-0">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Balance</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedUsers?.map((user: any) => (
+          {isLoading ? (
+            <TableSkeleton rows={10} columns={6} />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Balance</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedUsers?.map((user: any) => (
                 <TableRow key={user._id} className="hover:bg-muted/20">
                   <TableCell>
                     <div className="flex items-center space-x-3">
@@ -626,21 +630,24 @@ export default function AdminUsers() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
 
       {/* Pagination */}
-      <DataTablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={filteredUsers?.length ?? 0}
-        itemsPerPage={itemsPerPage}
-        onPageChange={setCurrentPage}
-        onItemsPerPageChange={(newItemsPerPage) => {
-          setItemsPerPage(newItemsPerPage);
-          setCurrentPage(1);
-        }}
-      />
+      {!isLoading && (
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredUsers?.length ?? 0}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(newItemsPerPage) => {
+            setItemsPerPage(newItemsPerPage);
+            setCurrentPage(1);
+          }}
+        />
+      )}
     </div>
   );
 }

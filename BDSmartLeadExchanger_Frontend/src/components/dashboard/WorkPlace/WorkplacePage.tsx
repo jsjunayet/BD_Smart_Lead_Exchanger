@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PageHeaderSkeleton, SearchFilterSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import { getWorkPlace } from "@/services/jobService";
 
 import {
@@ -86,6 +87,8 @@ const Workplace = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workplaceJobs, setworkplaceJobs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const filteredJobs = workplaceJobs?.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,13 +98,17 @@ const Workplace = () => {
       job.category.toLowerCase().includes(categoryFilter.toLowerCase());
     return matchesSearch && matchesCategory;
   });
+  
   useEffect(() => {
     const fetchJobs = async () => {
+      setIsLoading(true);
       try {
         const res = await getWorkPlace();
         setworkplaceJobs(res?.data);
       } catch (error) {
         console.error("Error fetching workplace jobs");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -153,53 +160,61 @@ const Workplace = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Workplace
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Browse and complete available jobs from the community
-          </p>
+      {isLoading ? (
+        <PageHeaderSkeleton />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              Workplace
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Browse and complete available jobs from the community
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline">
+              <Users className="w-3 h-3 mr-1" />
+              {filteredJobs?.length} Available
+            </Badge>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline">
-            <Users className="w-3 h-3 mr-1" />
-            {filteredJobs?.length} Available
-          </Badge>
-        </div>
-      </div>
+      )}
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search jobs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+      {isLoading ? (
+        <SearchFilterSkeleton />
+      ) : (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search jobs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <select
+                  className="px-3 py-2 border border-input rounded-md bg-background"
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                >
+                  <option value="all">All Categories</option>
+                  <option value="sign">Sign Up</option>
+                  <option value="app">App Install</option>
+                  <option value="social">Social Media</option>
+                  <option value="data">Data Entry</option>
+                </select>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <select
-                className="px-3 py-2 border border-input rounded-md bg-background"
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-              >
-                <option value="all">All Categories</option>
-                <option value="sign">Sign Up</option>
-                <option value="app">App Install</option>
-                <option value="social">Social Media</option>
-                <option value="data">Data Entry</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Jobs Table */}
       <Card>
@@ -207,51 +222,55 @@ const Workplace = () => {
           <CardTitle>Available Jobs</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Post By</th>
-                  <th className="text-left py-3 px-4">Job Title</th>
-                  <th className="text-left py-3 px-4">Job Post Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredJobs?.map((job: any) => (
-                  <tr
-                    key={job.id}
-                    className="border-b hover:bg-muted/50 cursor-pointer"
-                    onClick={() => handleJobClick(job)}
-                  >
-                    <td className="py-3 px-4">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {job?.postedBy.name
-                              ?.split(" ")
-                              .map((n: any) => n[0])
-                              .join("")
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{job.postedBy.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-medium text-primary hover:underline cursor-pointer">
-                        {job.title}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {job.createdAt
-                        ? new Date(job.createdAt).toLocaleString()
-                        : "N/A"}
-                    </td>
+          {isLoading ? (
+            <TableSkeleton rows={5} columns={3} />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4">Post By</th>
+                    <th className="text-left py-3 px-4">Job Title</th>
+                    <th className="text-left py-3 px-4">Job Post Time</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredJobs?.map((job: any) => (
+                    <tr
+                      key={job.id}
+                      className="border-b hover:bg-muted/50 cursor-pointer"
+                      onClick={() => handleJobClick(job)}
+                    >
+                      <td className="py-3 px-4">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback>
+                              {job?.postedBy.name
+                                ?.split(" ")
+                                .map((n: any) => n[0])
+                                .join("")
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{job.postedBy.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="font-medium text-primary hover:underline cursor-pointer">
+                          {job.title}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {job.createdAt
+                          ? new Date(job.createdAt).toLocaleString()
+                          : "N/A"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 

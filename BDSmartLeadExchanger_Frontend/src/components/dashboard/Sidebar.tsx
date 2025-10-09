@@ -20,7 +20,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 const Sidebar = () => {
   const pathname = usePathname();
   const [user, setUser] = useState<any | null>(null);
-
   const [isLoading, setIsLoading] = useState(true); // ✅ add loading state
 
   const fetchDeposit = async () => {
@@ -125,8 +124,15 @@ const Sidebar = () => {
         <div className="p-6 border-b border-border mb-2">
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src="/hero.png" />
-              <AvatarFallback>MS</AvatarFallback>
+              <AvatarImage src={`${user?.ProfileImage}`} />
+              <AvatarFallback>
+                {user.name
+                  .split(" ")
+                  .map((n: any) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2)}
+              </AvatarFallback>
             </Avatar>
             <div>
               <h3 className="font-semibold text-sm">{user?.name || "Guest"}</h3>

@@ -1,7 +1,7 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,11 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  PageHeaderSkeleton,
-  SearchFilterSkeleton,
-  TableSkeleton,
-} from "@/components/ui/skeletons";
+import { TableSkeleton } from "@/components/ui/skeletons";
 import {
   Table,
   TableBody,
@@ -25,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Approveddeposit, getAlldeposit } from "@/services/depositService";
-import { Check, Eye, Search, X } from "lucide-react";
+import { Check, Eye, Loader2, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -94,7 +90,7 @@ const DepositManagement = () => {
     depositId: string,
     status: "approved" | "rejected"
   ) => {
-    console.log(depositId, status, actionMessage);
+    setIsLoading(true);
     const res = await Approveddeposit(depositId, {
       status,
       message: actionMessage,
@@ -102,58 +98,52 @@ const DepositManagement = () => {
     if (res.success) {
       toast.success(`Deposit has been ${status}`);
       fetchDeposit();
+      setIsLoading(false);
       setSelectedDeposit(null);
       setActionMessage("");
     } else {
+      setIsLoading(false);
+
       toast.error(res.message || "Failed to update deposit status");
     }
   };
 
   return (
     <div className="space-y-6">
-      {isLoading ? (
-        <PageHeaderSkeleton />
-      ) : (
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Deposit Management</h1>
-          <Badge variant="outline">Admin Panel</Badge>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Deposit Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage user deposit requests and transactions
+          </p>
         </div>
-      )}
+      </div>
 
-      {/* Search */}
-      {isLoading ? (
-        <SearchFilterSkeleton />
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Search Deposits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      {/* Search and Filter */}
+      <Card className="bg-gradient-card shadow-card border-0">
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by user, transaction ID, or bKash number..."
+                type="search"
+                placeholder="Search by user or transaction ID..."
+                className="pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
               />
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Deposits Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {isLoading
-              ? "Loading Deposits..."
-              : `All Deposits (${filteredDeposits?.length})`}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="bg-gradient-card shadow-card border-0">
+        <CardContent className="p-0">
           {isLoading ? (
-            <TableSkeleton rows={8} columns={7} />
+            <TableSkeleton rows={10} columns={7} />
           ) : (
             <Table>
               <TableHeader>
@@ -252,8 +242,17 @@ const DepositManagement = () => {
                                       }
                                       className="bg-green-500 hover:bg-green-600"
                                     >
-                                      <Check className="h-4 w-4 mr-2" />
-                                      Approve
+                                      {isLoading ? (
+                                        <>
+                                          <Loader2 className="h-5 w-5 animate-spin" />
+                                          Approving...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Check className="h-4 w-4 mr-2" />
+                                          Approve
+                                        </>
+                                      )}
                                     </Button>
                                     <Button
                                       onClick={() =>
@@ -264,8 +263,17 @@ const DepositManagement = () => {
                                       }
                                       variant="destructive"
                                     >
-                                      <X className="h-4 w-4 mr-2" />
-                                      Reject
+                                      {isLoading ? (
+                                        <>
+                                          <Loader2 className="h-5 w-5 animate-spin" />
+                                          Approving...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <X className="h-4 w-4 mr-2" />
+                                          Reject
+                                        </>
+                                      )}
                                     </Button>
                                   </div>
                                 </div>

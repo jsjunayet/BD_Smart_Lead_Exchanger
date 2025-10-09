@@ -2,7 +2,7 @@
 import { uploadImageToCloudinary } from "@/components/share/clodinaryUpload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScreenshotViewer } from "@/components/ui/screenshot-viewer";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeaderSkeleton, SearchFilterSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import {
   Table,
   TableBody,
@@ -24,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getOwnjobs, Updatejobs } from "@/services/jobService"; // Import updateJob
 import { ApprovedOrRejectSubmission } from "@/services/JobSubmission";
 import {
+  Briefcase,
   Calendar,
   Check,
   CheckCircle,
@@ -119,8 +122,15 @@ const MyJobs = () => {
   }, []);
 
   const fetchData = async () => {
-    const response = await getOwnjobs();
-    setMyJobsData(response.data || []);
+    setIsLoading(true);
+    try {
+      const response = await getOwnjobs();
+      setMyJobsData(response.data || []);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle image selection
@@ -268,77 +278,100 @@ const MyJobs = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            My Jobs
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your posted jobs and track progress
-          </p>
+      {isLoading ? (
+        <PageHeaderSkeleton />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              My Jobs
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Manage your posted jobs and track progress
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Eye className="h-4 w-4 text-primary" />
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-muted rounded-lg">
+                    <div className="h-4 w-4" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-8" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Eye className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Jobs</p>
+                  <p className="font-semibold">{myJobsData.length}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Jobs</p>
-                <p className="font-semibold">{myJobsData.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-success/10 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-success" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Approved Jobs</p>
+                  <p className="font-semibold">
+                    {myJobsData.filter((job) => job.approvedByAdmin).length}
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-success/10 rounded-lg">
-                <CheckCircle className="h-4 w-4 text-success" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-info/10 rounded-lg">
+                  <Users className="h-4 w-4 text-info" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Total Submissions
+                  </p>
+                  <p className="font-semibold">
+                    {myJobsData.reduce(
+                      (acc, job) => acc + job.submissions.length,
+                      0
+                    )}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Approved Jobs</p>
-                <p className="font-semibold">
-                  {myJobsData.filter((job) => job.approvedByAdmin).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-info/10 rounded-lg">
-                <Users className="h-4 w-4 text-info" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Total Submissions
-                </p>
-                <p className="font-semibold">
-                  {myJobsData.reduce(
-                    (acc, job) => acc + job.submissions.length,
-                    0
-                  )}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-warning/10 rounded-lg">
-                <Clock className="h-4 w-4 text-warning" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Pending Reviews</p>
-                <p className="font-semibold">
-                  {myJobsData.reduce(
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-warning/10 rounded-lg">
+                  <Clock className="h-4 w-4 text-warning" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending Reviews</p>
+                  <p className="font-semibold">
+                    {myJobsData.reduce(
                     (acc, job) =>
                       acc +
                       job.submissions.filter((s) => s.status === "submitted")
@@ -351,403 +384,434 @@ const MyJobs = () => {
           </CardContent>
         </Card>
       </div>
+      )}      
 
       {/* Search */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search jobs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {isLoading ? (
+        <SearchFilterSkeleton />
+      ) : (
+        <Card>
+          <CardContent className="p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search jobs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Jobs List */}
-      <div className="space-y-4">
-        {filteredData.map((job) => {
-          const stats = getSubmissionStats(job.submissions);
-          const isExpanded = expandedJob === job._id;
+  <div className="space-y-4">
+  {isLoading ? (
+    <Card>
+      <CardHeader>
+        <CardTitle>Your Posted Jobs</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <TableSkeleton rows={5} columns={5} />
+      </CardContent>
+    </Card>
+  ) : filteredData.length === 0 ? (
+    <Card>
+      <CardContent className="p-12 text-center">
+        <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Briefcase className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold mb-2">No Jobs Found</h3>
+        <p className="text-muted-foreground mb-4">
+          You haven't posted any jobs yet or none match your search.
+        </p>
+        <Button>Post a New Job</Button>
+      </CardContent>
+    </Card>
+  ) : (
+    filteredData.map((job) => {
+      const stats = getSubmissionStats(job.submissions);
+      const isExpanded = expandedJob === job._id;
 
-          return (
-            <Card key={job._id} className="overflow-hidden">
-              <CardHeader>
-                <div className="md:flex space-y-2 md:space-y-0 items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center space-x-3">
-                      <h3 className="text-lg font-semibold">{job.title}</h3>
-                      {getJobStatusBadge(job.approvedByAdmin)}
-                    </div>
-                    <p className="text-muted-foreground">{job.description}</p>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <ExternalLink className="h-3 w-3" />
-                        <span className="truncate max-w-[300px]">
-                          {job.jobUrl}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>
-                          {new Date(job.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm">
-                      <span>Total: {stats.total}</span>
-                      <span className="text-success">✓ {stats.approved}</span>
-                      <span className="text-warning">⏳ {stats.submitted}</span>
-                      <span className="text-destructive">
-                        ✗ {stats.rejected}
-                      </span>
-                    </div>
+      return (
+        <Card key={job._id} className="overflow-hidden">
+          <CardHeader>
+            <div className="md:flex space-y-2 md:space-y-0 items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center space-x-3">
+                  <h3 className="text-lg font-semibold">{job.title}</h3>
+                  {getJobStatusBadge(job.approvedByAdmin)}
+                </div>
+                <p className="text-muted-foreground">{job.description}</p>
+                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-1">
+                    <ExternalLink className="h-3 w-3" />
+                    <span className="truncate max-w-[300px]">
+                      {job.jobUrl}
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingJob(job)}
-                        >
-                          <Edit className="h-3 w-3 mr-1" />
-                          Edit Job
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                        <DialogHeader>
-                          <DialogTitle>Edit Job</DialogTitle>
-                        </DialogHeader>
-                        {editingJob && (
-                          <div className="space-y-4">
-                            <div className="space-y-3">
-                              <label className="text-sm font-medium">
-                                Job Thumbnail
-                              </label>
-
-                              {/* Current Thumbnail Preview */}
-                              {!previewImage && editingJob.thumbnail && (
-                                <div className="relative group">
-                                  <div className="border rounded-lg p-2">
-                                    <p className="text-sm text-muted-foreground mb-2">
-                                      Current Thumbnail:
-                                    </p>
-                                    <Image
-                                      src={editingJob.thumbnail}
-                                      alt={editingJob.title}
-                                      width={200}
-                                      height={120}
-                                      className="rounded-md object-cover"
-                                    />
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* New Thumbnail Preview */}
-                              {previewImage && (
-                                <div className="relative group">
-                                  <div className="border rounded-lg p-2">
-                                    <p className="text-sm text-muted-foreground mb-2">
-                                      New Thumbnail Preview:
-                                    </p>
-                                    <Image
-                                      src={previewImage}
-                                      alt="Preview"
-                                      width={200}
-                                      height={120}
-                                      className="rounded-md object-cover"
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="sm"
-                                      className="absolute top-3 right-3"
-                                      onClick={handleRemoveImage}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Upload Button */}
-                              <div className="flex items-center gap-3">
-                                <Input
-                                  id="thumbnail-upload"
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={handleImageSelect}
-                                  className="hidden"
-                                />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={() =>
-                                    document
-                                      .getElementById("thumbnail-upload")
-                                      ?.click()
-                                  }
-                                >
-                                  <ImageIcon className="h-4 w-4 mr-2" />
-                                  {editingJob.thumbnail
-                                    ? "Change Thumbnail"
-                                    : "Upload Thumbnail"}
-                                </Button>
-                                {previewImage && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={handleRemoveImage}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Remove
-                                  </Button>
-                                )}
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                Recommended: Square image (500x500px), max 5MB
-                              </p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">
-                                Job Title
-                              </label>
-                              <Input
-                                defaultValue={editingJob.title}
-                                onChange={(e) =>
-                                  setEditingJob({
-                                    ...editingJob,
-                                    title: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">
-                                Description
-                              </label>
-                              <Textarea
-                                defaultValue={editingJob.description}
-                                onChange={(e) =>
-                                  setEditingJob({
-                                    ...editingJob,
-                                    description: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">
-                                Job URL
-                              </label>
-                              <Input
-                                defaultValue={editingJob.jobUrl}
-                                onChange={(e) =>
-                                  setEditingJob({
-                                    ...editingJob,
-                                    jobUrl: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">
-                                Screenshot Requirements
-                              </label>
-                              <Textarea
-                                defaultValue={editingJob.screenshotTitles.join(
-                                  "\n"
-                                )}
-                                placeholder="Enter each requirement on a new line"
-                                onChange={(e) =>
-                                  setEditingJob({
-                                    ...editingJob,
-                                    screenshotTitles: e.target.value
-                                      .split("\n")
-                                      .filter((t) => t.trim()),
-                                  })
-                                }
-                              />
-                            </div>
-                            <Button
-                              disabled={isLoading}
-                              onClick={() => handleJobEdit()}
-                              className="w-full"
-                            >
-                              {isLoading ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2" />
-                                  Save Changing...
-                                </>
-                              ) : (
-                                <>
-                                  <Save className="h-4 w-4 mr-2" />
-                                  Save Changes
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        )}
-                      </DialogContent>
-                    </Dialog>
+                  <div className="flex items-center space-x-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>
+                      {new Date(job.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4 text-sm">
+                  <span>Total: {stats.total}</span>
+                  <span className="text-success">✓ {stats.approved}</span>
+                  <span className="text-warning">⏳ {stats.submitted}</span>
+                  <span className="text-destructive">
+                    ✗ {stats.rejected}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Dialog>
+                  <DialogTrigger asChild>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() =>
-                        setExpandedJob(isExpanded ? null : job._id)
-                      }
+                      onClick={() => setEditingJob(job)}
                     >
-                      <Eye className="h-3 w-3 mr-1" />
-                      {isExpanded ? "Hide" : "View"} Submissions
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit Job
                     </Button>
-                  </div>
-                </div>
-              </CardHeader>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                    <DialogHeader>
+                      <DialogTitle>Edit Job</DialogTitle>
+                    </DialogHeader>
+                    {editingJob && (
+                      <div className="space-y-4">
+                        <div className="space-y-3">
+                          <label className="text-sm font-medium">
+                            Job Thumbnail
+                          </label>
 
-              {isExpanded && (
-                <CardContent className="pt-0">
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium mb-4">
-                      Submissions ({stats.total})
-                    </h4>
+                          {!previewImage && editingJob.thumbnail && (
+                            <div className="relative group">
+                              <div className="border rounded-lg p-2">
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  Current Thumbnail:
+                                </p>
+                                <Image
+                                  src={editingJob.thumbnail}
+                                  alt={editingJob.title}
+                                  width={200}
+                                  height={120}
+                                  className="rounded-md object-cover"
+                                />
+                              </div>
+                            </div>
+                          )}
 
-                    {job.submissions.length > 0 ? (
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Submission Email</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Remaining Time</TableHead> {/* NEW */}
-                              <TableHead>Proof Screenshots</TableHead>
-                              <TableHead>Submitted At</TableHead>
-                              <TableHead>Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
+                          {previewImage && (
+                            <div className="relative group">
+                              <div className="border rounded-lg p-2">
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  New Thumbnail Preview:
+                                </p>
+                                <Image
+                                  src={previewImage}
+                                  alt="Preview"
+                                  width={200}
+                                  height={120}
+                                  className="rounded-md object-cover"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute top-3 right-3"
+                                  onClick={handleRemoveImage}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
 
-                          <TableBody>
-                            {job.submissions.map((submission: any) => (
-                              <TableRow key={submission._id}>
-                                <TableCell className="font-mono text-sm">
-                                  {submission?.user?.email}
-                                  <p className=" text-sm text-gray-700">
-                                    {submission?.user?.name}
-                                  </p>
-                                </TableCell>
-                                <TableCell>
-                                  {getSubmissionStatusBadge(submission.status)}
-                                </TableCell>
+                          <div className="flex items-center gap-3">
+                            <Input
+                              id="thumbnail-upload"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageSelect}
+                              className="hidden"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() =>
+                                document
+                                  .getElementById("thumbnail-upload")
+                                  ?.click()
+                              }
+                            >
+                              <ImageIcon className="h-4 w-4 mr-2" />
+                              {editingJob.thumbnail
+                                ? "Change Thumbnail"
+                                : "Upload Thumbnail"}
+                            </Button>
+                            {previewImage && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleRemoveImage}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Recommended: Square image (500x500px), max 5MB
+                          </p>
+                        </div>
 
-                                {/* Countdown Timer */}
-                                <TableCell className="text-sm">
-                                  {submission.status === "submitted"
-                                    ? submissions[submission._id] !== undefined
-                                      ? formatCountdown(
-                                          submissions[submission._id]
-                                        )
-                                      : "Auto Approved"
-                                    : "--"}
-                                </TableCell>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Job Title
+                          </label>
+                          <Input
+                            defaultValue={editingJob.title}
+                            onChange={(e) =>
+                              setEditingJob({
+                                ...editingJob,
+                                title: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
 
-                                <TableCell>
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-sm">
-                                      {submission.proofScreenshots.length} files
-                                    </span>
-                                    {submission.proofScreenshots.length > 0 && (
-                                      <Dialog>
-                                        <DialogTrigger asChild>
-                                          <Button variant="outline" size="sm">
-                                            <Eye className="h-3 w-3" />
-                                          </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-w-6xl max-h-screen">
-                                          <DialogHeader>
-                                            <DialogTitle>
-                                              Professional Screenshots
-                                            </DialogTitle>
-                                          </DialogHeader>
-                                          <ScreenshotViewer
-                                            screenshots={
-                                              submission.proofScreenshots
-                                            }
-                                            titles={job.screenshotTitles}
-                                            professionalName={`${submission.user.email}`}
-                                            maxPreview={4}
-                                          />
-                                        </DialogContent>
-                                      </Dialog>
-                                    )}
-                                  </div>
-                                </TableCell>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Description
+                          </label>
+                          <Textarea
+                            defaultValue={editingJob.description}
+                            onChange={(e) =>
+                              setEditingJob({
+                                ...editingJob,
+                                description: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
 
-                                <TableCell>
-                                  <div className="text-sm">
-                                    {new Date(
-                                      submission.submittedAt
-                                    ).toLocaleString()}
-                                  </div>
-                                </TableCell>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Job URL
+                          </label>
+                          <Input
+                            defaultValue={editingJob.jobUrl}
+                            onChange={(e) =>
+                              setEditingJob({
+                                ...editingJob,
+                                jobUrl: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
 
-                                <TableCell>
-                                  {submission.status === "submitted" ? (
-                                    <div className="flex space-x-2">
-                                      <Button
-                                        size="sm"
-                                        onClick={() =>
-                                          handleSubmissionAction(
-                                            submission._id,
-                                            "approve"
-                                          )
-                                        }
-                                        className="bg-primary hover:bg-primary/80"
-                                      >
-                                        <Check className="h-3 w-3 mr-1" />
-                                        Approve
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="destructive"
-                                        onClick={() =>
-                                          handleSubmissionAction(
-                                            submission._id,
-                                            "reject"
-                                          )
-                                        }
-                                      >
-                                        <X className="h-3 w-3 mr-1" />
-                                        Reject
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <span className="text-sm text-muted-foreground">
-                                      {submission.status === "approved"
-                                        ? "Approved"
-                                        : "Rejected"}
-                                    </span>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Screenshot Requirements
+                          </label>
+                          <Textarea
+                            defaultValue={editingJob.screenshotTitles.join(
+                              "\n"
+                            )}
+                            placeholder="Enter each requirement on a new line"
+                            onChange={(e) =>
+                              setEditingJob({
+                                ...editingJob,
+                                screenshotTitles: e.target.value
+                                  .split("\n")
+                                  .filter((t) => t.trim()),
+                              })
+                            }
+                          />
+                        </div>
+
+                        <Button
+                          disabled={isLoading}
+                          onClick={() => handleJobEdit()}
+                          className="w-full"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2" />
+                              Save Changing...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-2" />
+                              Save Changes
+                            </>
+                          )}
+                        </Button>
                       </div>
-                    ) : (
-                      <p className="text-muted-foreground text-center py-4">
-                        No submissions yet
-                      </p>
                     )}
+                  </DialogContent>
+                </Dialog>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setExpandedJob(isExpanded ? null : job._id)
+                  }
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  {isExpanded ? "Hide" : "View"} Submissions
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+
+          {isExpanded && (
+            <CardContent className="pt-0">
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-4">
+                  Submissions ({stats.total})
+                </h4>
+
+                {job.submissions.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Submission Email</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Remaining Time</TableHead>
+                          <TableHead>Proof Screenshots</TableHead>
+                          <TableHead>Submitted At</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+
+                      <TableBody>
+                        {job.submissions.map((submission: any) => (
+                          <TableRow key={submission._id}>
+                            <TableCell className="font-mono text-sm">
+                              {submission?.user?.email}
+                              <p className=" text-sm text-gray-700">
+                                {submission?.user?.name}
+                              </p>
+                            </TableCell>
+                            <TableCell>
+                              {getSubmissionStatusBadge(submission.status)}
+                            </TableCell>
+
+                            <TableCell className="text-sm">
+                              {submission.status === "submitted"
+                                ? submissions[submission._id] !== undefined
+                                  ? formatCountdown(
+                                      submissions[submission._id]
+                                    )
+                                  : "Auto Approved"
+                                : "--"}
+                            </TableCell>
+
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm">
+                                  {submission.proofScreenshots.length} files
+                                </span>
+                                {submission.proofScreenshots.length > 0 && (
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="sm">
+                                        <Eye className="h-3 w-3" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-6xl max-h-screen">
+                                      <DialogHeader>
+                                        <DialogTitle>
+                                          Professional Screenshots
+                                        </DialogTitle>
+                                      </DialogHeader>
+                                      <ScreenshotViewer
+                                        screenshots={
+                                          submission.proofScreenshots
+                                        }
+                                        titles={job.screenshotTitles}
+                                        professionalName={`${submission.user.email}`}
+                                        maxPreview={4}
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            <TableCell>
+                              <div className="text-sm">
+                                {new Date(
+                                  submission.submittedAt
+                                ).toLocaleString()}
+                              </div>
+                            </TableCell>
+
+                            <TableCell>
+                              {submission.status === "submitted" ? (
+                                <div className="flex space-x-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() =>
+                                      handleSubmissionAction(
+                                        submission._id,
+                                        "approve"
+                                      )
+                                    }
+                                    className="bg-primary hover:bg-primary/80"
+                                  >
+                                    <Check className="h-3 w-3 mr-1" />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() =>
+                                      handleSubmissionAction(
+                                        submission._id,
+                                        "reject"
+                                      )
+                                    }
+                                  >
+                                    <X className="h-3 w-3 mr-1" />
+                                    Reject
+                                  </Button>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">
+                                  {submission.status === "approved"
+                                    ? "Approved"
+                                    : "Rejected"}
+                                </span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                </CardContent>
-              )}
-            </Card>
-          );
-        })}
-      </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">
+                    No submissions yet
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      );
+    })
+  )}
+</div>
+
 
       {filteredData.length === 0 && (
         <Card>

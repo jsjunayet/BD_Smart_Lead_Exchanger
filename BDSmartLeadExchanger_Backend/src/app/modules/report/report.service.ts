@@ -4,11 +4,12 @@ import { IReport } from './report.interface';
 import { Report } from './report.model';
 
 const createReport = async (userId: string, body: IReport) => {
-  const { submission, reason } = body;
+  const { submission, reason, adminNotes } = body;
   const result = await Report.create({
     user: userId, // from auth middleware
     submission,
     reason,
+    adminNotes,
   });
   return result;
 };
