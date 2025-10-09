@@ -53,7 +53,7 @@ export default function AdminPaymentSetup() {
   });
   const [loading, setloading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Fetch data from backend
   const fetchPaymentRates = async () => {
     try {
@@ -128,83 +128,82 @@ export default function AdminPaymentSetup() {
                 <Plus className="h-4 w-4" /> Add Payment Rate
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editingRate ? "Edit Payment Rate" : "Add Payment Rate"}
-              </DialogTitle>
-              <DialogDescription>
-                {editingRate
-                  ? "Update payment rate configuration"
-                  : "Configure a new payment method"}
-              </DialogDescription>
-            </DialogHeader>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingRate ? "Edit Payment Rate" : "Add Payment Rate"}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingRate
+                    ? "Update payment rate configuration"
+                    : "Configure a new payment method"}
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="type">Payment Type *</Label>
-                  <Input
-                    id="type"
-                    value={formData.type}
-                    onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value })
-                    }
-                    placeholder="bKash, Nagad, Rocket..."
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="type">Payment Type *</Label>
+                    <Input
+                      id="type"
+                      value={formData.type}
+                      onChange={(e) =>
+                        setFormData({ ...formData, type: e.target.value })
+                      }
+                      placeholder="bKash, Nagad, Rocket..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="rate">Rate (%) *</Label>
+                    <Input
+                      id="rate"
+                      type="text"
+                      value={formData.rate}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          rate: e.target.value,
+                        })
+                      }
+                      placeholder="Amount"
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <Label htmlFor="rate">Rate (%) *</Label>
+                  <Label htmlFor="number">Payment Number *</Label>
                   <Input
-                    id="rate"
-                    type="text"
-                    value={formData.rate}
+                    id="number"
+                    value={formData.number}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        rate: e.target.value,
-                      })
+                      setFormData({ ...formData, number: e.target.value })
                     }
-                    placeholder="Amount"
+                    placeholder="+880"
                   />
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="number">Payment Number *</Label>
-                <Input
-                  id="number"
-                  value={formData.number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, number: e.target.value })
-                  }
-                  placeholder="+880"
-                />
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                disabled={loading || user?.role !== "superAdmin"}
-                onClick={handleSubmit}
-              >
-                {loading
-                  ? editingRate
-                    ? "Updating..."
-                    : "Creating..."
-                  : editingRate
-                  ? "Update"
-                  : "Create"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-)}  
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button disabled={loading} onClick={handleSubmit}>
+                  {loading
+                    ? editingRate
+                      ? "Updating..."
+                      : "Creating..."
+                    : editingRate
+                    ? "Update"
+                    : "Create"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
       {/* Payment Rates Table */}
       <Card className="bg-gradient-card shadow-card border-0">
         <CardContent className="p-0">
@@ -224,7 +223,8 @@ export default function AdminPaymentSetup() {
                 {paymentRates.map((rate) => (
                   <TableRow key={rate._id} className="hover:bg-muted/20">
                     <TableCell className="font-medium flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-primary" /> {rate.type}
+                      <CreditCard className="h-4 w-4 text-primary" />{" "}
+                      {rate.type}
                     </TableCell>
                     <TableCell>{rate.number} </TableCell>
 
