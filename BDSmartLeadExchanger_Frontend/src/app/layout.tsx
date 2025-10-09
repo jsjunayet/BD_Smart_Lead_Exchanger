@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "BDSmartLeadExchanger | Digital Traffic & CPA Lead Exchange Platform",
   description:
     "BDSmartLeadExchanger is a trusted digital marketplace offering traffic exchange, CPA lead generation, social media growth, and business tools. Built on transparency and performance, we empower users to grow, earn, and succeed online.",
+  icons: {
+    icon: "logo.png",
+  },
   openGraph: {
     title: "BDSmartLeadExchanger",
     description:
