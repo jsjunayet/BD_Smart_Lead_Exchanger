@@ -1,5 +1,6 @@
 // src/utils/cronJobs.ts
 import mongoose from 'mongoose';
+import cron from 'node-cron';
 import { User } from '../modules/Auth/auth.model';
 import { JobSubmission } from '../modules/JobSubmission/JobSubmission.model';
 
@@ -14,8 +15,6 @@ export const startCronJobs = () => {
   //   }
   //   console.log('✅ Daily wallet deduction done');
   // });
-  import cron from 'node-cron';
-
   cron.schedule(
     '0 0 * * *',
     async () => {
