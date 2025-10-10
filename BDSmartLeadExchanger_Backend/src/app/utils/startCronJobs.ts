@@ -1,6 +1,5 @@
 // src/utils/cronJobs.ts
 import mongoose from 'mongoose';
-import cron from 'node-cron';
 import { User } from '../modules/Auth/auth.model';
 import { JobSubmission } from '../modules/JobSubmission/JobSubmission.model';
 
@@ -15,17 +14,24 @@ export const startCronJobs = () => {
   //   }
   //   console.log('✅ Daily wallet deduction done');
   // });
-  cron.schedule('0 0 * * *', async () => {
-    const users = await User.find();
-    for (const u of users) {
-      if (u.wallet > 0) {
-        u.wallet = Math.max(0, Number((u.wallet - 0.05).toFixed(2)));
-        await u.save();
-      }
-    }
+  import cron from 'node-cron';
 
-    console.log('✅ 0.05 deducted from all wallets successfully');
-  });
+  cron.schedule(
+    '0 0 * * *',
+    async () => {
+      const users = await User.find();
+      for (const u of users) {
+        if (u.wallet > 0) {
+          u.wallet = Math.max(0, Number((u.wallet - 0.05).toFixed(2)));
+          await u.save();
+        }
+      }
+      console.log('✅ 0.05 deducted from all wallets successfully');
+    },
+    {
+      timezone: 'Asia/Dhaka', // 🔹 Bangladesh time zone
+    },
+  );
 
   cron.schedule('0 */2 * * *', async () => {
     console.log('⏳ Checking pending submissions for auto-approval...');
