@@ -221,19 +221,35 @@ const getAllJobForAdmin = async () => {
 // };
 
 const getWorkplaceJobs = async (userId: string) => {
+  // 🔹 ইউজারের ২৪ ঘণ্টার মধ্যে করা completed job বাদ দিচ্ছি
   const completedJobs = await JobSubmission.find({
     user: userId,
     submittedAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
   }).distinct('job');
+
+  // 🔹 সব approved job নিচ্ছি
   const jobs = await Job.find({
     approvedByAdmin: true,
     _id: { $nin: completedJobs },
   })
-    .populate('postedBy', 'name email surfingBalance') // no match
+    .populate('postedBy', 'name email surfingBalance')
     .lean();
-  const filteredJobs = jobs.filter(
-    (job) => !job.postedBy || (job.postedBy as any).surfingBalance > 0,
-  );
+
+  // 🔹 current user নিজে যদি surfingBalance 0 হয়, তাহলে সে নিজের post করা job দেখতে পাবে না
+  const filteredJobs = jobs.filter((job) => {
+    const postedBy = job.postedBy as any;
+    // যদি job.poster = current user এবং তার surfingBalance 0 → বাদ দাও
+    if (
+      postedBy &&
+      postedBy._id?.toString() === userId &&
+      postedBy.surfingBalance <= 0
+    ) {
+      return false;
+    }
+    // অন্যদের job সবসময় দেখাবে
+    return true;
+  });
+
   return filteredJobs;
 };
 

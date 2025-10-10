@@ -25,7 +25,8 @@ const getAllReports = async () => {
           path: 'postedBy', // this is the extra nested population
         },
       },
-    });
+    })
+    .sort({ createdAt: -1 });
 
   return result;
 };
@@ -49,7 +50,9 @@ const getMyReports = async (userId: string, submissionId: string) => {
   const result = await Report.findOne({
     user: userId,
     submission: submissionId,
-  }).populate('submission');
+  })
+    .populate('submission')
+    .sort({ createdAt: -1 });
 
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, 'Report not found');

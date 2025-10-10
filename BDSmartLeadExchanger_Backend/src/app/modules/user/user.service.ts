@@ -34,7 +34,7 @@ const GetAllUser = async (userData: JwtPayload) => {
       'Your account is waiting for admin approval!',
     );
   }
-  const result = await User.find();
+  const result = await User.find().sort({ createdAt: -1 });
   return result;
 };
 

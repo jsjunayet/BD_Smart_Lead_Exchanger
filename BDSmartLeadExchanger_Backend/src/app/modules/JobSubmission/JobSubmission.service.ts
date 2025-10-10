@@ -254,7 +254,10 @@ async function handleRegularUserReview(
 }
 
 const getAllSubmission = async () => {
-  const result = await JobSubmission.find().populate('job').populate('user');
+  const result = await JobSubmission.find()
+    .populate('job')
+    .populate('user')
+    .sort({ createdAt: -1 }); // 🔹 -1 মানে descending order (newest first)
   return result;
 };
 const getOwnSubmission = async (userId: string) => {
@@ -262,12 +265,13 @@ const getOwnSubmission = async (userId: string) => {
     .populate({
       path: 'job',
       populate: {
-        path: 'postedBy', // nested populate
+        path: 'postedBy', // 🔹 nested populate
         model: 'User',
         select: 'name email ProfileImage', // optional: limit fields
       },
     })
-    .populate('user'); // main submission user
+    .populate('user') // 🔹 main submission user
+    .sort({ createdAt: -1 }); // 🔹 newest submissions first
 
   return result;
 };

@@ -19,7 +19,7 @@ router.get(
 router.get('/:id', auth('admin', 'superAdmin'), BkashController.getBkashById);
 router.delete(
   '/:id',
-  auth('admin', 'superAdmin'),
+  auth( 'superAdmin'),
   BkashController.DeletedBkashById,
 );
 

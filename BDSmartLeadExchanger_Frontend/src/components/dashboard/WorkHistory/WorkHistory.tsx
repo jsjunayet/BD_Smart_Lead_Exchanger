@@ -267,9 +267,7 @@ export const WorkHistory = () => {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium">{item.job.title}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {item.job.description}
-                          </div>
+
                           <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                             <span>ID: {item.job._id.slice(-8)}</span>
                           </div>
