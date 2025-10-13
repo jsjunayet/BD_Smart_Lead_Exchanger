@@ -98,7 +98,6 @@ const MyJobs = () => {
               if (remaining <= 0) {
                 // Auto approve if time is over
                 sub.status = "approved";
-                toast.success(`Submission ${sub._id.slice(-8)} auto-approved!`);
               } else {
                 updated[sub._id] = remaining;
               }
@@ -569,6 +568,7 @@ const MyJobs = () => {
                                 <TableHead>Proof Screenshots</TableHead>
                                 <TableHead>Submitted At</TableHead>
                                 <TableHead>Actions</TableHead>
+                                <TableHead>Report Reason</TableHead>
                               </TableRow>
                             </TableHeader>
 
@@ -688,6 +688,32 @@ const MyJobs = () => {
                                         Deleted
                                       </Button>
                                     </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="text-primary"
+                                        >
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          View Reject
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>
+                                            Reject Details
+                                          </DialogTitle>
+                                        </DialogHeader>
+                                        <div className="space-y-3">
+                                          <p className=" text-sm text-red-600">
+                                            {submission.rejectReason}
+                                          </p>
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
                                   </TableCell>
                                 </TableRow>
                               ))}

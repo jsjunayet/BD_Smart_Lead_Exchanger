@@ -249,6 +249,7 @@ async function handleRegularUserReview(
       { session },
     );
   } else {
+    submission.rejectReason = action.action.rejectReason;
     submission.status = 'rejected';
   }
 }

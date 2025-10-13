@@ -141,7 +141,8 @@ const getJobsByOwner = async (ownerId: string) => {
   const jobsWithSubmissions = await Promise.all(
     jobs.map(async (job) => {
       const submissions = await JobSubmission.find({ job: job._id })
-        .populate('user', 'name email ProfileImage') // শুধুমাত্র name, email, ProfileImage
+        .populate('user', 'name email ProfileImage')
+        .sort({ createdAt: -1 }) // শুধুমাত্র name, email, ProfileImage
         .lean();
 
       return { ...job, submissions };
@@ -161,6 +162,7 @@ const getAllJobForAdmin = async () => {
   for (const job of jobs) {
     const submissions = await JobSubmission.find({ job: job._id })
       .populate('user', 'name email')
+      .sort({ createdAt: -1 })
       .lean();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -221,13 +223,13 @@ const getAllJobForAdmin = async () => {
 // };
 
 const getWorkplaceJobs = async (userId: string) => {
-  // 🔹 ইউজারের ২৪ ঘণ্টার মধ্যে করা completed job বাদ দিচ্ছি
+  // ✅ ইউজারের গত ২৪ ঘণ্টায় সাবমিট করা job বাদ দিচ্ছি
   const completedJobs = await JobSubmission.find({
     user: userId,
     submittedAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
   }).distinct('job');
 
-  // 🔹 সব approved job নিচ্ছি
+  // ✅ সব approved job নিচ্ছি, যেগুলো completed নয়
   const jobs = await Job.find({
     approvedByAdmin: true,
     _id: { $nin: completedJobs },
@@ -235,19 +237,10 @@ const getWorkplaceJobs = async (userId: string) => {
     .populate('postedBy', 'name email surfingBalance')
     .lean();
 
-  // 🔹 current user নিজে যদি surfingBalance 0 হয়, তাহলে সে নিজের post করা job দেখতে পাবে না
+  // ✅ filter: যার surfingBalance <= 0 → তার job বাদ
   const filteredJobs = jobs.filter((job) => {
     const postedBy = job.postedBy as any;
-    // যদি job.poster = current user এবং তার surfingBalance 0 → বাদ দাও
-    if (
-      postedBy &&
-      postedBy._id?.toString() === userId &&
-      postedBy.surfingBalance <= 0
-    ) {
-      return false;
-    }
-    // অন্যদের job সবসময় দেখাবে
-    return true;
+    return postedBy?.surfingBalance > 0;
   });
 
   return filteredJobs;

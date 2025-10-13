@@ -12,6 +12,7 @@ const JobSubmissionSchema = new Schema<IJobSubmission>(
       default: 'submitted',
     },
     submittedAt: { type: Date, default: Date.now },
+    rejectReason: { type: String, default: '' },
   },
   { timestamps: true },
 );

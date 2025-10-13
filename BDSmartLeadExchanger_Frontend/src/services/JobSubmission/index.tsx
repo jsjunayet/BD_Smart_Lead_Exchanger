@@ -103,6 +103,7 @@ export const ApprovedOrRejectSubmission = async (
   id: string,
   data: any
 ): Promise<any> => {
+  console.log(data);
   const token = (await cookies()).get("accessToken")!.value;
 
   try {

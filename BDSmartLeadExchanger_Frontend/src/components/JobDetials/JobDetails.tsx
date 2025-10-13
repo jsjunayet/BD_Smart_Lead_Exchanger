@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, FormSkeleton } from "@/components/ui/skeletons";
+import { useUser } from "@/context/UserContext";
 import { getWorkPlace } from "@/services/jobService";
 import { createSubmission } from "@/services/JobSubmission";
 import { ArrowLeft, Loader2, Users } from "lucide-react";
@@ -18,6 +19,8 @@ type SinglePageProps = {
 };
 const SinglePage = ({ jobId }: SinglePageProps) => {
   const [loading, setLoading] = useState(false);
+  const { user } = useUser();
+
   const [isLoadingJob, setIsLoadingJob] = useState(true);
   const navigate = useRouter();
   const [job, setJob] = useState<any | null>(null);
@@ -230,21 +233,28 @@ const SinglePage = ({ jobId }: SinglePageProps) => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
-              <span className="font-mono text-sm">
-                {job?.jobUrl || "No URL provided"}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  if (job?.jobUrl) {
-                    navigator.clipboard.writeText(job.jobUrl);
-                    toast.success("URL কপি করা হয়েছে!");
-                  }
-                }}
-              >
-                📋 Copy
-              </Button>
+              {job?.postedBy?.email == user?.email ? (
+                <button>This is your Own Work (এটি আপনার নিজস্ব কাজ)</button>
+              ) : (
+                <>
+                  {" "}
+                  <span className="font-mono text-sm">
+                    {job?.jobUrl || "No URL provided"}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (job?.jobUrl) {
+                        navigator.clipboard.writeText(job.jobUrl);
+                        toast.success("URL কপি করা হয়েছে!");
+                      }
+                    }}
+                  >
+                    📋 Copy
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

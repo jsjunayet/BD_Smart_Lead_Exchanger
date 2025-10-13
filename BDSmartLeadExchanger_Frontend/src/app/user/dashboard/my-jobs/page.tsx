@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -84,7 +85,10 @@ const MyJobs = () => {
   const [newThumbnail, setNewThumbnail] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [Loading, setLoading] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [loading, setLoading] = useState(false);
+
   // Countdown timer effect
   useEffect(() => {
     const timer = setInterval(() => {
@@ -99,7 +103,6 @@ const MyJobs = () => {
 
               if (remaining <= 0) {
                 sub.status = "approved";
-                toast.success(`Submission ${sub._id.slice(-8)} auto-approved!`);
               } else {
                 updated[sub._id] = remaining;
               }
@@ -255,18 +258,39 @@ const MyJobs = () => {
 
   const handleSubmissionAction = async (
     submissionId: string,
-    action: "approve" | "reject"
+    action: "approve" | "reject",
+    reject: string
   ) => {
     setLoading(true);
-    const res = await ApprovedOrRejectSubmission(submissionId, action);
+    const payload = {
+      action,
+      rejectReason: action === "reject" ? reject : "", // ✅ only send reject reason if rejecting
+    };
+    const res = await ApprovedOrRejectSubmission(submissionId, payload);
+    setLoading(false);
+
     if (res.success) {
+      toast.success(res.message);
       setLoading(false);
-      toast.success(`${res.message}`);
+
       fetchData();
     } else {
+      toast.error(res.message);
       setLoading(false);
-      toast.error(`${res.message}`);
     }
+  };
+
+  const handleRejectSubmit = async (submissionId: string) => {
+    if (!rejectReason.trim()) {
+      toast.error("Please enter a reason for rejection.");
+      return;
+    }
+    console.log(submissionId, rejectReason);
+    await handleSubmissionAction(submissionId, "reject", rejectReason);
+    setRejectReason("");
+    setLoading(false);
+
+    setRejectDialogOpen(false);
   };
 
   const getSubmissionStats = (submissions: Submission[]) => {
@@ -775,19 +799,22 @@ const MyJobs = () => {
                                   <TableCell>
                                     {submission.status === "submitted" ? (
                                       <div className="flex space-x-2">
+                                        {/* ✅ Approve Button */}
                                         <Button
                                           size="sm"
                                           onClick={() =>
                                             handleSubmissionAction(
                                               submission._id,
-                                              "approve"
+                                              "approve",
+                                              ""
                                             )
                                           }
                                           className="bg-primary hover:bg-primary/80"
+                                          disabled={loading}
                                         >
-                                          {Loading ? (
+                                          {loading ? (
                                             <>
-                                              <Loader2 />
+                                              <Loader2 className="animate-spin h-3 w-3 mr-1" />
                                               Approving...
                                             </>
                                           ) : (
@@ -797,34 +824,122 @@ const MyJobs = () => {
                                             </>
                                           )}
                                         </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="destructive"
-                                          onClick={() =>
-                                            handleSubmissionAction(
-                                              submission._id,
-                                              "reject"
-                                            )
-                                          }
+
+                                        {/* ❌ Reject Button — Opens Modal */}
+                                        <Dialog
+                                          open={rejectDialogOpen}
+                                          onOpenChange={setRejectDialogOpen}
                                         >
-                                          {Loading ? (
-                                            <>
-                                              <Loader2 />
-                                              Rejecting...
-                                            </>
-                                          ) : (
-                                            <>
-                                              <X className="h-3 w-3 mr-1" />
-                                              Reject
-                                            </>
-                                          )}
-                                        </Button>
+                                          <DialogTrigger asChild>
+                                            <Button
+                                              size="sm"
+                                              variant="destructive"
+                                            >
+                                              {loading ? (
+                                                <>
+                                                  <Loader2 className="animate-spin h-3 w-3 mr-1" />
+                                                  Rejecting...
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <X className="h-3 w-3 mr-1" />
+                                                  Reject
+                                                </>
+                                              )}
+                                            </Button>
+                                          </DialogTrigger>
+
+                                          <DialogContent>
+                                            <DialogHeader>
+                                              <DialogTitle>
+                                                Reject Submission
+                                              </DialogTitle>
+                                            </DialogHeader>
+                                            <div className="space-y-3">
+                                              <p>
+                                                Please provide a reason for
+                                                rejecting this submission:
+                                              </p>
+                                              <Input
+                                                placeholder="Enter reason..."
+                                                value={rejectReason}
+                                                onChange={(e) =>
+                                                  setRejectReason(
+                                                    e.target.value
+                                                  )
+                                                }
+                                              />
+                                            </div>
+                                            <DialogFooter>
+                                              <Button
+                                                variant="outline"
+                                                onClick={() =>
+                                                  setRejectDialogOpen(false)
+                                                }
+                                              >
+                                                Cancel
+                                              </Button>
+                                              <Button
+                                                variant="destructive"
+                                                onClick={() =>
+                                                  handleRejectSubmit(
+                                                    submission._id
+                                                  )
+                                                }
+                                                disabled={loading}
+                                              >
+                                                {loading ? (
+                                                  <>
+                                                    <Loader2 className="animate-spin h-4 w-4 mr-1" />
+                                                    Submitting...
+                                                  </>
+                                                ) : (
+                                                  "Submit"
+                                                )}
+                                              </Button>
+                                            </DialogFooter>
+                                          </DialogContent>
+                                        </Dialog>
                                       </div>
                                     ) : (
                                       <span className="text-sm text-muted-foreground">
-                                        {submission.status === "approved"
-                                          ? "Approved"
-                                          : "Rejected"}
+                                        {submission.status === "approved" ? (
+                                          "Approved"
+                                        ) : (
+                                          <>
+                                            <Dialog>
+                                              <DialogTrigger asChild>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  className="text-primary"
+                                                >
+                                                  <Eye className="h-4 w-4 mr-1" />
+                                                  View Reject
+                                                </Button>
+                                              </DialogTrigger>
+                                              <DialogContent>
+                                                <DialogHeader>
+                                                  <DialogTitle>
+                                                    Reject Details
+                                                  </DialogTitle>
+                                                </DialogHeader>
+                                                <div className="">
+                                                  <p className=" text-sm text-red-600">
+                                                    {submission?.rejectReason && (
+                                                      <span className="block text-xs text-destructive mt-1">
+                                                        Reason:{" "}
+                                                        {
+                                                          submission?.rejectReason
+                                                        }
+                                                      </span>
+                                                    )}
+                                                  </p>
+                                                </div>
+                                              </DialogContent>
+                                            </Dialog>
+                                          </>
+                                        )}
                                       </span>
                                     )}
                                   </TableCell>

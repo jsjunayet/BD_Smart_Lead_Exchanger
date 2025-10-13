@@ -6,6 +6,7 @@ import { JobSubmissionService } from './JobSubmission.service';
 const reviewSubmission = catchAsync(async (req, res) => {
   const id = req.user.userId;
   const submissionId = req.params.id;
+  console.log(req.body);
 
   const result = await JobSubmissionService.reviewSubmission(
     submissionId,

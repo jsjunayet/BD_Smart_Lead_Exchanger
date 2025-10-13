@@ -90,7 +90,7 @@ export const WorkHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [Submission, setSubmission] = useState<any | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [isLoading, setisloading] = useState(true);
   const [reportReason, setReportReason] = useState("");
   const itemsPerPage = 5;
@@ -599,6 +599,11 @@ export const WorkHistory = () => {
                                   </DialogTrigger>
                                   <DialogContent>
                                     <DialogHeader>
+                                      <p>Reject Reason:</p>
+                                      <span className="text-red-500">
+                                        {selectedItem?.rejectReason ||
+                                          "No reason provided"}
+                                      </span>
                                       <DialogTitle>
                                         Report Submission Issue
                                       </DialogTitle>
