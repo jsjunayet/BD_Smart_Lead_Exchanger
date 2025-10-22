@@ -230,7 +230,7 @@ async function handleRegularUserReview(
     throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient balance');
   }
 
-  if (action.action === 'approve') {
+  if (action.action.action === 'approve') {
     submission.status = 'approved';
 
     if (currentUser.surfingBalance <= 0) {
