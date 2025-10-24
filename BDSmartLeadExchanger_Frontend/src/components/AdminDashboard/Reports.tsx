@@ -61,9 +61,9 @@ const ReportManagement = () => {
 
   const filteredReports = reports?.filter(
     (report) =>
-      report.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.submission.job.title
+      report?.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report?.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report?.submission?.job?.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       report.reason.toLowerCase().includes(searchTerm.toLowerCase())
@@ -156,7 +156,7 @@ const ReportManagement = () => {
                   <TableCell>{report?.user?.name}</TableCell>
                   <TableCell>{report?.user?.email}</TableCell>
                   <TableCell>
-                    {report?.submission?.job?.postedBy.email}
+                    {report?.submission?.job?.postedBy?.email}
                   </TableCell>
                   <TableCell>
                     {report?.submission?.job?.postedBy?.name}
