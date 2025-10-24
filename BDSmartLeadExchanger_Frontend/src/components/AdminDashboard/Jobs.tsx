@@ -386,7 +386,7 @@ const MyJobs = () => {
                         {getJobStatusBadge(job.approvedByAdmin)}
                       </div>
                       <p className="text-muted-foreground">
-                        {job.postedBy.name}, {job.postedBy.email}
+                        {job?.postedBy?.name}, {job?.postedBy?.email}
                       </p>
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                         <div className="flex items-center space-x-1">
@@ -579,16 +579,16 @@ const MyJobs = () => {
                                     {submission._id}
                                   </TableCell>
                                   <TableCell className="font-medium">
-                                    {submission.user.name}{" "}
+                                    {submission?.user?.name}{" "}
                                     {/* Show user name */}
                                   </TableCell>
                                   <TableCell className="text-sm">
-                                    {submission.user.email}{" "}
+                                    {submission?.user?.email}{" "}
                                     {/* Show user email */}
                                   </TableCell>
                                   <TableCell>
                                     {getSubmissionStatusBadge(
-                                      submission.status
+                                      submission?.status
                                     )}
                                   </TableCell>
 
@@ -610,7 +610,7 @@ const MyJobs = () => {
                                         {submission.proofScreenshots.length}{" "}
                                         files
                                       </span>
-                                      {submission.proofScreenshots.length >
+                                      {submission?.proofScreenshots?.length >
                                         0 && (
                                         <Dialog>
                                           <DialogTrigger asChild>
@@ -626,11 +626,11 @@ const MyJobs = () => {
                                             </DialogHeader>
                                             <ScreenshotViewer
                                               screenshots={
-                                                submission.proofScreenshots
+                                                submission?.proofScreenshots
                                               }
                                               titles={job.screenshotTitles}
                                               professionalName={
-                                                submission.user.email
+                                                submission?.user?.email
                                               }
                                               professionalImage="/placeholder.svg"
                                               maxPreview={4}

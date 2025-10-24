@@ -616,9 +616,8 @@ export default function AdminUsers() {
                                 variant="destructive"
                                 onClick={() => handleDeleteUser(user._id)}
                                 disabled={
-                                  (currentUser?.role === "admin" &&
-                                    user?.role === "admin") ||
-                                  user?.role === "superAdmin"
+                                  currentUser?.role !== "superAdmin" &&
+                                  user?.role === "admin"
                                 }
                               >
                                 Delete User
