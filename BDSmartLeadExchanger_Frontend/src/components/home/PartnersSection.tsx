@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { getAllHome } from "@/services/userService";
 
+export const revalidate = 60;
 export const PartnersSection = async () => {
   const response = await getAllHome();
   const data = response?.data || [];

@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -574,57 +573,26 @@ export default function AdminUsers() {
                             )}
                           </DialogContent>
                         </Dialog>
-                        <Dialog
-                          open={isModalOpen}
-                          onOpenChange={setIsModalOpen}
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          disabled={
+                            // Rule:
+                            // 1. Admin cannot delete another admin
+                            (currentUser?.role === "admin" &&
+                              user?.role === "admin") ||
+                            // 2. SuperAdmin can never be deleted by anyone
+                            user.role === "superAdmin"
+                          }
+                          onClick={() => {
+                            handleDeleteUser(user._id);
+                          }}
                         >
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                              disabled={
-                                // Rule:
-                                // 1. Admin cannot delete another admin
-                                (currentUser?.role === "admin" &&
-                                  user?.role === "admin") ||
-                                // 2. SuperAdmin can never be deleted by anyone
-                                user.role === "superAdmin"
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Delete User</DialogTitle>
-                              <DialogDescription>
-                                Are you sure you want to delete{" "}
-                                <strong>{user.name}</strong>? This action cannot
-                                be undone and will permanently remove all user
-                                data.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                              <Button
-                                variant="outline"
-                                onClick={() => setIsModalOpen(false)}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                onClick={() => handleDeleteUser(user._id)}
-                                disabled={
-                                  currentUser?.role !== "superAdmin" &&
-                                  user?.role === "admin"
-                                }
-                              >
-                                Delete User
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+
                         <Button
                           variant="outline"
                           size="sm"

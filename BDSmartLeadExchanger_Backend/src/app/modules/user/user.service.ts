@@ -212,6 +212,14 @@ const userRoleUpdate = async (
     throw new AppError(httpStatus.FORBIDDEN, 'This admin is blocked!');
   }
 
+  // 🚫 Only superAdmin can update roles
+  if (admin.role !== 'superAdmin') {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      'Only superAdmin can update user roles!',
+    );
+  }
+
   // 2. Check if user exists
   const user = await User.findById(userId);
 
@@ -227,18 +235,26 @@ const userRoleUpdate = async (
     throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked!');
   }
 
-  if (!user.isApproved) {
-    throw new AppError(httpStatus.FORBIDDEN, 'This user is already approved!');
+  // 🚫 Optional: Prevent superAdmin’s own role from being downgraded
+  if (user.role === 'superAdmin') {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      'You cannot modify another superAdmin’s role!',
+    );
   }
+
   console.log(newRole, 'service');
-  // 3. Approve the user
+
+  // 3. Update the user role
   const result = await User.findByIdAndUpdate(
     userId,
     { role: newRole },
     { new: true },
   );
+
   return result;
 };
+
 export const userHomeUpdate = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) throw new Error('User not found');
@@ -247,27 +263,45 @@ export const userHomeUpdate = async (userId: string) => {
 };
 
 // Delete user
-const DeletedUser = async (adminId: string, userId: string) => {
+export const DeletedUser = async (adminId: string, userId: string) => {
+  // 1️⃣ Find and verify the admin
   const admin = await User.findById(adminId);
+  console.log(admin, 'admin');
 
   if (!admin) {
     throw new AppError(httpStatus.NOT_FOUND, 'Admin not found!');
   }
-
   if (admin.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, 'This admin is deleted!');
   }
-
   if (admin.status === false) {
     throw new AppError(httpStatus.FORBIDDEN, 'This admin is blocked!');
   }
 
+  // 2️⃣ Find the target user
   const user = await User.findById(userId);
-
+  console.log(user, 'user');
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
   }
 
+  // 3️⃣ Prevent SuperAdmin from being deleted
+  if (user.role === 'superAdmin') {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      'SuperAdmin accounts cannot be deleted!',
+    );
+  }
+
+  // 4️⃣ Optional: Restrict normal admin from deleting other admins
+  if (admin.role === 'admin' && user.role === 'admin') {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      'Admins cannot delete other admins!',
+    );
+  }
+
+  // 5️⃣ Proceed with deletion
   const result = await User.findByIdAndDelete(userId);
   return result;
 };
