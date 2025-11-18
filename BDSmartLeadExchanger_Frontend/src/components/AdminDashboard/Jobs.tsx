@@ -427,13 +427,13 @@ const MyJobs = () => {
                           >
                             {Loading ? (
                               <>
-                                <Loader2 />
-                                Approving...
+                                <Check className="h-3 w-3 mr-1" />
+                                Approve
                               </>
                             ) : (
                               <>
-                                <Check className="h-3 w-3 mr-1" />
-                                Approve
+                                <Loader2 />
+                                Approving...
                               </>
                             )}
                           </Button>
@@ -444,13 +444,13 @@ const MyJobs = () => {
                           >
                             {Loading ? (
                               <>
-                                <Loader2 />
-                                Rejecting...
+                                <X className="h-3 w-3 mr-1" />
+                                Reject
                               </>
                             ) : (
                               <>
-                                <X className="h-3 w-3 mr-1" />
-                                Reject
+                                <Loader2 />
+                                Rejecting...
                               </>
                             )}
                           </Button>
