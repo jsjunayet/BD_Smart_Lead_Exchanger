@@ -33,8 +33,12 @@ export const PartnersSection = async () => {
                 </div>
                 <h3 className="font-bold text-lg mb-1">{partner.name}</h3>
                 <p className="text-sm opacity-90 mb-2">
-                  {partner.role.charAt(0).toUpperCase() + partner.role.slice(1)}
+                  {partner.role === "superAdmin"
+                    ? "Platform Owner & Super Admin"
+                    : partner.role.charAt(0).toUpperCase() +
+                      partner.role.slice(1)}
                 </p>
+
                 <hr className="py-2" />
                 <p className="text-xs font-semibold">
                   {"Support & Solutions Officer"}
