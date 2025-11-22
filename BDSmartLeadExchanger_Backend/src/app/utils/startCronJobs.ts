@@ -71,7 +71,7 @@ export const startCronJobs = () => {
         const expiredSubs = subs.filter((s) => {
           const diffInSeconds =
             (now.getTime() - s.submittedAt.getTime()) / 1000;
-          return diffInSeconds > 7200; // 2 hours
+          return diffInSeconds > 18000; // 2 hours
         });
 
         if (expiredSubs.length === 0) continue;

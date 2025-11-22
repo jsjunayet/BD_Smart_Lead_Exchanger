@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, FormSkeleton } from "@/components/ui/skeletons";
-import { useUser } from "@/context/UserContext";
+import { getCurrentUser } from "@/services/authService";
 import { getWorkPlace } from "@/services/jobService";
 import { createSubmission } from "@/services/JobSubmission";
 import { ArrowLeft, Loader2, Users } from "lucide-react";
@@ -19,11 +19,19 @@ type SinglePageProps = {
 };
 const SinglePage = ({ jobId }: SinglePageProps) => {
   const [loading, setLoading] = useState(false);
-  const { user } = useUser();
+  // const { user, isLoading } = useUser();
+  const [user, setUser] = useState<any>(null);
 
   const [isLoadingJob, setIsLoadingJob] = useState(true);
   const navigate = useRouter();
   const [job, setJob] = useState<any | null>(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+    fetchUser();
+  }, []);
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -81,7 +89,8 @@ const SinglePage = ({ jobId }: SinglePageProps) => {
         return <Badge variant="secondary">{difficulty}</Badge>;
     }
   };
-  if (isLoadingJob) {
+
+  if (isLoadingJob || !user?.email) {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-2">
@@ -233,11 +242,12 @@ const SinglePage = ({ jobId }: SinglePageProps) => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
-              {job?.postedBy?.email == user?.email ? (
+              {user.email &&
+              job?.postedBy?.email?.toLowerCase() ===
+                user?.email?.toLowerCase() ? (
                 <button>This is your Own Work (এটি আপনার নিজস্ব কাজ)</button>
               ) : (
                 <>
-                  {" "}
                   <span className="font-mono text-sm">
                     {job?.jobUrl || "No URL provided"}
                   </span>

@@ -134,8 +134,8 @@ export const WorkHistory = () => {
 
   const filteredData = Submission?.filter(
     (item: any) =>
-      item.job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      item?.job?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item?.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Pagination logic
