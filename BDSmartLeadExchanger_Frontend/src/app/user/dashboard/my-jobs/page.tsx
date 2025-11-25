@@ -98,8 +98,8 @@ const MyJobs = () => {
           job.submissions.forEach((sub) => {
             if (sub.status === "submitted") {
               const submittedTime = new Date(sub.submittedAt).getTime();
-              // const deadline = submittedTime + 5 * 60 * 60 * 1000;
-              const deadline = submittedTime + 6 * 60 * 1000;
+              const deadline = submittedTime + 5 * 60 * 60 * 1000;
+              // const deadline = submittedTime + 6 * 60 * 1000;
               const remaining = Math.floor((deadline - Date.now()) / 1000);
 
               if (remaining <= 0) {

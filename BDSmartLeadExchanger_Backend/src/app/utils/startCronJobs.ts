@@ -37,8 +37,8 @@ export const startCronJobs = () => {
     console.log('⏳ Checking submissions older than 5 hours...');
 
     const now = new Date();
-    // const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1000);
-    const fiveHoursAgo = new Date(now.getTime() - 6 * 60 * 1000);
+    const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+    // const fiveHoursAgo = new Date(now.getTime() - 6 * 60 * 1000);
     try {
       // 🟢 Submissions exactly 5 hours old
       const submissions = await JobSubmission.find({
