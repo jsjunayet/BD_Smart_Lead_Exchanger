@@ -32,88 +32,89 @@ export const startCronJobs = () => {
     },
   );
 
-  cron.schedule('0 */2 * * *', async () => {
-    console.log('⏳ Checking pending submissions for auto-approval...');
+  // RUN EVERY 2 MINUTES
+  cron.schedule('*/2 * * * *', async () => {
+    console.log('⏳ Checking submissions older than 5 hours...');
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
+    const now = new Date();
+    // const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+    const fiveHoursAgo = new Date(now.getTime() - 6 * 60 * 1000);
     try {
-      const now = new Date();
-
-      // সব pending submissions নিয়ে আসা
-      const submissions = await JobSubmission.find({ status: 'submitted' })
+      // 🟢 Submissions exactly 5 hours old
+      const submissions = await JobSubmission.find({
+        status: 'submitted',
+        submittedAt: { $lte: fiveHoursAgo },
+      })
         .populate('job')
-        .populate('user')
-        .session(session);
+        .populate('user');
 
-      // Owner অনুযায়ী submissions group করা
-      const ownerSubmissionsMap = new Map<string, any[]>();
-
-      for (const sub of submissions) {
-        const job: any = sub.job;
-        const key = job.postedBy.toString();
-
-        if (!ownerSubmissionsMap.has(key)) {
-          ownerSubmissionsMap.set(key, []);
-        }
-
-        ownerSubmissionsMap.get(key)!.push(sub);
+      if (!submissions.length) {
+        console.log('No submissions older than 5 hours.');
+        return;
       }
 
-      // প্রতিটি owner-এর submissions আলাদা করে handle করা
-      for (const [ownerId, subs] of ownerSubmissionsMap.entries()) {
-        const owner = await User.findById(ownerId).session(session);
-        if (!owner) continue;
+      console.log(`🟢 Found ${submissions.length} submissions to auto-approve`);
 
-        // ✅ এখন 2 মিনিটের বেশি পুরানো submissions filter করবো
-        // পুরোনো submissions filter করা (2 ঘণ্টা = 7200 সেকেন্ড)
-        const expiredSubs = subs.filter((s) => {
-          const diffInSeconds =
-            (now.getTime() - s.submittedAt.getTime()) / 1000;
-          return diffInSeconds > 18000; // 2 hours
-        });
+      for (const submission of submissions) {
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-        if (expiredSubs.length === 0) continue;
+        try {
+          const job = submission.job;
+          const submitter = submission.user;
 
-        // owner balance check
-        if (owner.surfingBalance < expiredSubs.length) {
-          console.log(
-            `❌ Owner ${ownerId} balance insufficient: ${owner.surfingBalance}, needed ${expiredSubs.length}`,
-          );
-          continue;
-        }
+          if (!job || !submitter) {
+            await session.abortTransaction();
+            session.endSession();
+            continue;
+          }
 
-        // একসাথে deduct
-        owner.surfingBalance -= expiredSubs.length;
-        await owner.save({ session });
+          const owner = await User.findById(job.postedBy).session(session);
 
-        // প্রতিটি submission approve করা
-        for (const sub of expiredSubs) {
-          sub.status = 'approved';
-          await sub.save({ session });
+          if (!owner) {
+            await session.abortTransaction();
+            session.endSession();
+            continue;
+          }
 
-          const userDoc: any = sub.user;
+          if (owner.surfingBalance <= 0) {
+            console.log(`❌ Owner ${owner._id} has insufficient balance.`);
+            await session.abortTransaction();
+            session.endSession();
+            continue;
+          }
 
+          // Approve
+          submission.status = 'approved';
+          await submission.save({ session });
+
+          // Owner: -1
+          owner.surfingBalance -= 1;
+          await owner.save({ session });
+
+          // Submitter: +1
           await User.findByIdAndUpdate(
-            userDoc._id,
+            submitter._id,
             { $inc: { surfingBalance: 1 } },
             { session },
           );
 
-          console.log(
-            `✅ Auto-approved submission ${sub._id} | Owner: ${owner._id} -> User: ${userDoc._id}`,
-          );
+          await session.commitTransaction();
+          session.endSession();
+
+          console.log(`✅ Auto Approved: ${submission._id}`);
+        } catch (err) {
+          await session.abortTransaction();
+          session.endSession();
+          console.error('Error auto-approving:', err);
         }
       }
 
-      await session.commitTransaction();
-      session.endSession();
-      console.log('✅ Auto-approval process completed');
+      console.log('✨ Auto approval cycle complete.');
     } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      console.error('❌ Auto-approval failed:', err);
+      console.error('CRON ERROR:', err);
     }
   });
+
+  console.log('🔁 Auto approve cron started (every 2 minutes)');
 };

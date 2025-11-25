@@ -222,26 +222,50 @@ const getAllJobForAdmin = async () => {
 //   return jobs;
 // };
 
+// const getWorkplaceJobs = async (userId: string) => {
+//   // ✅ ইউজারের গত ২৪ ঘণ্টায় সাবমিট করা job বাদ দিচ্ছি
+//   const completedJobs = await JobSubmission.find({
+//     user: userId,
+//     submittedAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+//   }).distinct('job');
+
+//   // ✅ সব approved job নিচ্ছি, যেগুলো completed নয়
+//   const jobs = await Job.find({
+//     approvedByAdmin: true,
+//     _id: { $nin: completedJobs },
+//   })
+//     .populate('postedBy', 'name email surfingBalance')
+//     .lean();
+
+//   // ✅ filter: যার surfingBalance <= 0 → তার job বাদ
+//   const filteredJobs = jobs.filter((job) => {
+//     const postedBy = job.postedBy as any;
+//     return postedBy?.surfingBalance > 0;
+//   });
+
+//   return filteredJobs;
+// };
 const getWorkplaceJobs = async (userId: string) => {
-  // ✅ ইউজারের গত ২৪ ঘণ্টায় সাবমিট করা job বাদ দিচ্ছি
+  // 1️⃣ Get jobs submitted by this user in last 24 hours
   const completedJobs = await JobSubmission.find({
     user: userId,
-    submittedAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    submittedAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) }, // last 24 hours
   }).distinct('job');
 
-  // ✅ সব approved job নিচ্ছি, যেগুলো completed নয়
+  // 2️⃣ Fetch approved jobs, not submitted by this user
   const jobs = await Job.find({
     approvedByAdmin: true,
     _id: { $nin: completedJobs },
   })
-    .populate('postedBy', 'name email surfingBalance')
+    .populate({
+      path: 'postedBy',
+      match: { surfingBalance: { $gt: 0 } }, // owner must have balance
+      select: 'name email surfingBalance', // only fetch these fields
+    })
     .lean();
 
-  // ✅ filter: যার surfingBalance <= 0 → তার job বাদ
-  const filteredJobs = jobs.filter((job) => {
-    const postedBy = job.postedBy as any;
-    return postedBy?.surfingBalance > 0;
-  });
+  // 3️⃣ Filter out jobs where postedBy is null (no owner or owner balance <= 0)
+  const filteredJobs = jobs.filter((job) => job.postedBy);
 
   return filteredJobs;
 };

@@ -137,13 +137,12 @@ export const WorkHistory = () => {
       item?.job?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item?.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  console.log(Submission, "hhjhjhjh");
   // Pagination logic
   const totalPages = Math?.ceil(filteredData?.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData?.slice(startIndex, endIndex);
-  console.log(currentData, "couree");
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -199,7 +198,6 @@ export const WorkHistory = () => {
     try {
       setisloading(true);
       const res = await getOwnSubmission();
-      console.log(res);
       setSubmission(res?.data);
     } catch (error) {
       console.error("Error fetching workplace jobs");
@@ -266,19 +264,21 @@ export const WorkHistory = () => {
                     <TableRow key={item._id}>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">{item.job.title}</div>
+                          <div className="font-medium">{item?.job?.title}</div>
 
                           <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                            <span>ID: {item.job._id.slice(-8)}</span>
+                            <span>ID: {item?.job?._id.slice(-8)}</span>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={item.job.postedBy.ProfileImage} />
+                            <AvatarImage
+                              src={item?.job?.postedBy?.ProfileImage}
+                            />
                             <AvatarFallback>
-                              {item.job.postedBy.name
+                              {item?.job?.postedBy?.name
                                 .split(" ")
                                 .map((n: any) => n[0])
                                 .join("")
@@ -287,26 +287,26 @@ export const WorkHistory = () => {
                           </Avatar>
                           <div>
                             <div className="font-medium">
-                              {item.job.postedBy.name}
+                              {item?.job?.postedBy?.name}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {item.job.postedBy.email}
+                              {item?.job?.postedBy?.email}
                             </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          {getStatusIcon(item.status)}
-                          {getStatusBadge(item.status)}
+                          {getStatusIcon(item?.status)}
+                          {getStatusBadge(item?.status)}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <span className="text-sm">
-                            {item.proofScreenshots.length} files
+                            {item?.proofScreenshots?.length} files
                           </span>
-                          {item.proofScreenshots.length > 0 && (
+                          {item?.proofScreenshots?.length > 0 && (
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button variant="outline" size="sm">
@@ -320,10 +320,10 @@ export const WorkHistory = () => {
                                   </DialogTitle>
                                 </DialogHeader>
                                 <ScreenshotViewer
-                                  screenshots={item.proofScreenshots}
-                                  titles={item.job.screenshotTitles}
-                                  professionalName={item.user.name}
-                                  professionalImage={item.user.image}
+                                  screenshots={item?.proofScreenshots}
+                                  titles={item?.job?.screenshotTitles}
+                                  professionalName={item?.user?.name}
+                                  professionalImage={item?.user?.image}
                                   maxPreview={4}
                                 />
                               </DialogContent>
@@ -334,10 +334,10 @@ export const WorkHistory = () => {
                       <TableCell>
                         <div className="text-sm">
                           <div>
-                            {new Date(item.submittedAt).toLocaleDateString()}
+                            {new Date(item?.submittedAt).toLocaleDateString()}
                           </div>
                           <div className="text-muted-foreground">
-                            {new Date(item.submittedAt).toLocaleTimeString()}
+                            {new Date(item?.submittedAt).toLocaleTimeString()}
                           </div>
                         </div>
                       </TableCell>
@@ -368,7 +368,7 @@ export const WorkHistory = () => {
                                           Title:
                                         </span>
                                         <p className="text-muted-foreground">
-                                          {item.job.title}
+                                          {item?.job?.title}
                                         </p>
                                       </div>
                                       <div>
@@ -376,7 +376,7 @@ export const WorkHistory = () => {
                                           Description:
                                         </span>
                                         <p className="text-muted-foreground">
-                                          {item.job.description}
+                                          {item?.job?.description}
                                         </p>
                                       </div>
                                       <div>
@@ -384,7 +384,7 @@ export const WorkHistory = () => {
                                           Job URL:
                                         </span>
                                         <p className="text-muted-foreground break-all">
-                                          {item.job.jobUrl}
+                                          {item?.job?.jobUrl}
                                         </p>
                                       </div>
                                       <div>
@@ -392,7 +392,7 @@ export const WorkHistory = () => {
                                           Screenshot Requirements:
                                         </span>
                                         <ul className="text-muted-foreground list-disc list-inside">
-                                          {item.job.screenshotTitles.map(
+                                          {item?.job?.screenshotTitles.map(
                                             (title: any, index: any) => (
                                               <li key={index}>{title}</li>
                                             )
@@ -414,7 +414,7 @@ export const WorkHistory = () => {
                                           Submission Email:
                                         </span>
                                         <p className="text-muted-foreground font-mono">
-                                          {item.user.email}
+                                          {item?.user?.email}
                                         </p>
                                       </div>
                                       <div>
@@ -422,7 +422,7 @@ export const WorkHistory = () => {
                                           Status:
                                         </span>
                                         <div className="mt-1">
-                                          {getStatusBadge(item.status)}
+                                          {getStatusBadge(item?.status)}
                                         </div>
                                       </div>
                                       <div>
@@ -431,7 +431,7 @@ export const WorkHistory = () => {
                                         </span>
                                         <p className="text-muted-foreground">
                                           {new Date(
-                                            item.submittedAt
+                                            item?.submittedAt
                                           ).toLocaleString()}
                                         </p>
                                       </div>
@@ -440,7 +440,7 @@ export const WorkHistory = () => {
                                           Proof Files:
                                         </span>
                                         <p className="text-muted-foreground">
-                                          {item.proofScreenshots.length}{" "}
+                                          {item?.proofScreenshots?.length}{" "}
                                           screenshots uploaded
                                         </p>
                                       </div>
@@ -448,7 +448,7 @@ export const WorkHistory = () => {
                                   </Card>
                                 </div>
 
-                                {item.proofScreenshots.length > 0 && (
+                                {item?.proofScreenshots?.length > 0 && (
                                   <Card>
                                     <CardHeader>
                                       <CardTitle className="text-lg">
@@ -457,10 +457,10 @@ export const WorkHistory = () => {
                                     </CardHeader>
                                     <CardContent>
                                       <ScreenshotViewer
-                                        screenshots={item.proofScreenshots}
-                                        titles={item.job.screenshotTitles}
-                                        professionalName={item.user.name}
-                                        professionalImage={item.user.image}
+                                        screenshots={item?.proofScreenshots}
+                                        titles={item?.job?.screenshotTitles}
+                                        professionalName={item?.user?.name}
+                                        professionalImage={item?.user?.image}
                                         maxPreview={6}
                                       />
                                     </CardContent>
@@ -532,9 +532,9 @@ export const WorkHistory = () => {
                           </DialogContent>
                         </Dialog> */}
 
-                          {item.status === "rejected" && (
+                          {item?.status === "rejected" && (
                             <>
-                              {userReports[item._id] ? (
+                              {userReports[item?._id] ? (
                                 // ✅ Report already exists
                                 <Dialog>
                                   <DialogTrigger asChild>
@@ -554,24 +554,24 @@ export const WorkHistory = () => {
                                     <div className="space-y-3">
                                       <p>
                                         <strong>Submission ID:</strong>{" "}
-                                        {item._id}
+                                        {item?._id}
                                       </p>
                                       <p>
                                         <strong>Reason:</strong>{" "}
-                                        {userReports[item._id].reason}
+                                        {userReports[item?._id].reason}
                                       </p>
                                       <p>
                                         <strong>Admin Notes:</strong>{" "}
-                                        {userReports[item._id].adminNotes}
+                                        {userReports[item?._id].adminNotes}
                                       </p>
                                       <p>
                                         <strong>Status:</strong>{" "}
-                                        {userReports[item._id].status}
+                                        {userReports[item?._id].status}
                                       </p>
                                       <p>
                                         <strong>Reported At:</strong>{" "}
                                         {new Date(
-                                          userReports[item._id].createdAt
+                                          userReports[item?._id].createdAt
                                         ).toLocaleString()}
                                       </p>
                                     </div>
@@ -657,8 +657,8 @@ export const WorkHistory = () => {
             <div className="flex items-center justify-between mt-6">
               <p className="text-sm text-muted-foreground">
                 Showing {startIndex + 1} to{" "}
-                {Math.min(endIndex, filteredData.length)} of{" "}
-                {filteredData.length} entries
+                {Math?.min(endIndex, filteredData?.length)} of{" "}
+                {filteredData?.length} entries
               </p>
               <div className="flex items-center space-x-2">
                 <Button
