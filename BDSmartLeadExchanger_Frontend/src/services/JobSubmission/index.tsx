@@ -32,7 +32,7 @@ export const getOwnSubmission = async () => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
         },
         next: {
           tags: ["Submission"],
@@ -61,7 +61,7 @@ export const createSubmission = async (
       {
         method: "POST",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formdata),
@@ -85,7 +85,7 @@ export const createSubmission = async (
 //       {
 //         method: "PATCH",
 //         headers: {
-//           Authorization: ` ${token}`,
+//           Authorization: ` Bearer ${token}`,
 //           "Content-Type": "application/json",
 //         },
 //         body: JSON.stringify(data),
@@ -112,7 +112,7 @@ export const ApprovedOrRejectSubmission = async (
       {
         method: "PATCH",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ action: data }),

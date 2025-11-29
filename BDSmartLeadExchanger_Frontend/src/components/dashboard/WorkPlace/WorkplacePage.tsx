@@ -12,7 +12,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { PageHeaderSkeleton, SearchFilterSkeleton, TableSkeleton } from "@/components/ui/skeletons";
+import {
+  PageHeaderSkeleton,
+  SearchFilterSkeleton,
+  TableSkeleton,
+} from "@/components/ui/skeletons";
 import { getWorkPlace } from "@/services/jobService";
 
 import {
@@ -88,7 +92,7 @@ const Workplace = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workplaceJobs, setworkplaceJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const filteredJobs = workplaceJobs?.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,7 +102,7 @@ const Workplace = () => {
       job.category.toLowerCase().includes(categoryFilter.toLowerCase());
     return matchesSearch && matchesCategory;
   });
-  
+
   useEffect(() => {
     const fetchJobs = async () => {
       setIsLoading(true);
@@ -114,6 +118,7 @@ const Workplace = () => {
 
     fetchJobs(); // ✅ Call the function
   }, []);
+  console.log(workplaceJobs, "worplace");
 
   const getDifficultyBadge = (difficulty: string) => {
     switch (difficulty) {
@@ -252,7 +257,9 @@ const Workplace = () => {
                                 .toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-medium">{job.postedBy.name}</span>
+                          <span className="font-medium">
+                            {job.postedBy.name}
+                          </span>
                         </div>
                       </td>
                       <td className="py-3 px-4">

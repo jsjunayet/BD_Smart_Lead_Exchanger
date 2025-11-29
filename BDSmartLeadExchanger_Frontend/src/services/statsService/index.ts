@@ -29,7 +29,7 @@ export const createStats = async (data: {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -51,7 +51,7 @@ export const updateStats = async (
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data),
   });
@@ -70,7 +70,7 @@ export const deletedStats = async (id: string): Promise<any> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/home/${id}`, {
       method: "DELETE", // এখানে DELETED নয়, DELETE ব্যবহার করতে হবে
       headers: {
-        Authorization: `${token}`, // Bearer token সাধারণ practice
+        Authorization: `Bearer ${token}`, // Bearer token সাধারণ practice
       },
     });
 

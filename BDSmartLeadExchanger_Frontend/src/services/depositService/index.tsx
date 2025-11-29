@@ -12,7 +12,7 @@ export const getAlldeposit = async () => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
         },
         next: {
           tags: ["deposit"],
@@ -36,7 +36,7 @@ export const getOwndeposit = async () => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
         },
         next: {
           tags: ["deposit"],
@@ -62,7 +62,7 @@ export const createdeposit = async (formdata: any): Promise<any> => {
       {
         method: "POST",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formdata),
@@ -86,7 +86,7 @@ export const Approveddeposit = async (id: string, data: any): Promise<any> => {
       {
         method: "PATCH",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),

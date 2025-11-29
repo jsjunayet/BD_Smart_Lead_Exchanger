@@ -129,7 +129,6 @@ const MyJobs = () => {
     try {
       setIsLoading(true);
       const response = await getAlljobs();
-      console.log(response);
       setMyJobsData(response.data || []);
     } catch (error) {
       console.error("Failed to fetch jobs", error);
@@ -234,7 +233,6 @@ const MyJobs = () => {
   const handleDeleted = async (id: string) => {
     const res = await deletedSubmission(id);
     fetchData();
-    console.log(res);
   };
   return (
     <div className="space-y-6">
@@ -595,14 +593,15 @@ const MyJobs = () => {
 
                                   {/* Countdown Timer */}
                                   <TableCell className="text-sm">
-                                    {submission.status === "submitted"
+                                    {/* {submission.status === "submitted"
                                       ? submissions[submission._id] !==
                                         undefined
                                         ? formatCountdown(
                                             submissions[submission._id]
                                           )
                                         : "Auto Approved"
-                                      : "--"}
+                                      : "--"} */}
+                                    "Auto Approve Off"
                                   </TableCell>
 
                                   <TableCell>

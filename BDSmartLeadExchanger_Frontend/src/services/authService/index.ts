@@ -59,7 +59,7 @@ export const loginUser = async (userData: FieldValues) => {
 //       {
 //         method: "GET",
 //         headers: {
-//           Authorization: `Bearer ${token}`,
+//           Authorization: `Bearer Bearer ${token}`,
 //           "Content-Type": "application/json",
 //         },
 //         next: {
@@ -123,7 +123,7 @@ export const ChangePassword = async (userData: FieldValues) => {
       {
         method: "POST",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),

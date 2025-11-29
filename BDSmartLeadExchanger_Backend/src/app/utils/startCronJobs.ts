@@ -1,8 +1,6 @@
 // src/utils/cronJobs.ts
-import mongoose from 'mongoose';
 import cron from 'node-cron';
 import { User } from '../modules/Auth/auth.model';
-import { JobSubmission } from '../modules/JobSubmission/JobSubmission.model';
 
 export const startCronJobs = () => {
   // cron.schedule('0 0 * * *', async () => {
@@ -33,88 +31,88 @@ export const startCronJobs = () => {
   );
 
   // RUN EVERY 2 MINUTES
-  cron.schedule('*/2 * * * *', async () => {
-    console.log('⏳ Checking submissions older than 5 hours...');
+  // cron.schedule('*/2 * * * *', async () => {
+  //   console.log('⏳ Checking submissions older than 5 hours...');
 
-    const now = new Date();
-    const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1000);
-    // const fiveHoursAgo = new Date(now.getTime() - 6 * 60 * 1000);
-    try {
-      // 🟢 Submissions exactly 5 hours old
-      const submissions = await JobSubmission.find({
-        status: 'submitted',
-        submittedAt: { $lte: fiveHoursAgo },
-      })
-        .populate('job')
-        .populate('user');
+  //   const now = new Date();
+  //   const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+  //   // const fiveHoursAgo = new Date(now.getTime() - 6 * 60 * 1000);
+  //   try {
+  //     // 🟢 Submissions exactly 5 hours old
+  //     const submissions = await JobSubmission.find({
+  //       status: 'submitted',
+  //       submittedAt: { $lte: fiveHoursAgo },
+  //     })
+  //       .populate('job')
+  //       .populate('user');
 
-      if (!submissions.length) {
-        console.log('No submissions older than 5 hours.');
-        return;
-      }
+  //     if (!submissions.length) {
+  //       console.log('No submissions older than 5 hours.');
+  //       return;
+  //     }
 
-      console.log(`🟢 Found ${submissions.length} submissions to auto-approve`);
+  //     console.log(`🟢 Found ${submissions.length} submissions to auto-approve`);
 
-      for (const submission of submissions) {
-        const session = await mongoose.startSession();
-        session.startTransaction();
+  //     for (const submission of submissions) {
+  //       const session = await mongoose.startSession();
+  //       session.startTransaction();
 
-        try {
-          const job = submission.job;
-          const submitter = submission.user;
+  //       try {
+  //         const job = submission.job;
+  //         const submitter = submission.user;
 
-          if (!job || !submitter) {
-            await session.abortTransaction();
-            session.endSession();
-            continue;
-          }
+  //         if (!job || !submitter) {
+  //           await session.abortTransaction();
+  //           session.endSession();
+  //           continue;
+  //         }
 
-          const owner = await User.findById(job.postedBy).session(session);
+  //         const owner = await User.findById(job.postedBy).session(session);
 
-          if (!owner) {
-            await session.abortTransaction();
-            session.endSession();
-            continue;
-          }
+  //         if (!owner) {
+  //           await session.abortTransaction();
+  //           session.endSession();
+  //           continue;
+  //         }
 
-          if (owner.surfingBalance <= 0) {
-            console.log(`❌ Owner ${owner._id} has insufficient balance.`);
-            await session.abortTransaction();
-            session.endSession();
-            continue;
-          }
+  //         if (owner.surfingBalance <= 0) {
+  //           console.log(`❌ Owner ${owner._id} has insufficient balance.`);
+  //           await session.abortTransaction();
+  //           session.endSession();
+  //           continue;
+  //         }
 
-          // Approve
-          submission.status = 'approved';
-          await submission.save({ session });
+  //         // Approve
+  //         submission.status = 'approved';
+  //         await submission.save({ session });
 
-          // Owner: -1
-          owner.surfingBalance -= 1;
-          await owner.save({ session });
+  //         // Owner: -1
+  //         owner.surfingBalance -= 1;
+  //         await owner.save({ session });
 
-          // Submitter: +1
-          await User.findByIdAndUpdate(
-            submitter._id,
-            { $inc: { surfingBalance: 1 } },
-            { session },
-          );
+  //         // Submitter: +1
+  //         await User.findByIdAndUpdate(
+  //           submitter._id,
+  //           { $inc: { surfingBalance: 1 } },
+  //           { session },
+  //         );
 
-          await session.commitTransaction();
-          session.endSession();
+  //         await session.commitTransaction();
+  //         session.endSession();
 
-          console.log(`✅ Auto Approved: ${submission._id}`);
-        } catch (err) {
-          await session.abortTransaction();
-          session.endSession();
-          console.error('Error auto-approving:', err);
-        }
-      }
+  //         console.log(`✅ Auto Approved: ${submission._id}`);
+  //       } catch (err) {
+  //         await session.abortTransaction();
+  //         session.endSession();
+  //         console.error('Error auto-approving:', err);
+  //       }
+  //     }
 
-      console.log('✨ Auto approval cycle complete.');
-    } catch (err) {
-      console.error('CRON ERROR:', err);
-    }
-  });
+  //     console.log('✨ Auto approval cycle complete.');
+  //   } catch (err) {
+  //     console.error('CRON ERROR:', err);
+  //   }
+  // });
 
   console.log('🔁 Auto approve cron started (every 2 minutes)');
 };

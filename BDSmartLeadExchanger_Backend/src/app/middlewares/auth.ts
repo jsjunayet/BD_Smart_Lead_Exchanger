@@ -9,59 +9,60 @@ import catchAsync from '../utils/catchAsync';
 
 const auth = (...requiredRoles: string[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
-    // checking if the token is missing
-    if (!token) {
-      throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+    const authHeader = req.headers.authorization;
+
+    // No Authorization Header
+    if (!authHeader) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        'Authorization header missing!',
+      );
     }
 
-    // checking if the given token is valid
+    // Check Bearer format
+    const tokenParts = authHeader.split(' ');
+
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        'Invalid Authorization format! Use: Bearer <token>',
+      );
+    }
+
+    const token = tokenParts[1];
+    console.log(token, 'token');
+
+    // Verify Token
     const decoded = jwt.verify(
       token,
       config.jwt_access_secret as string,
     ) as JwtPayload;
+    console.log(decoded, 'decoded');
 
-    const { role, iat, email } = decoded;
+    const { role, email } = decoded;
 
-    // checking if the user is exist
-    const user = await User.findOne({ email: email });
+    // Check user
+    const user = await User.findOne({ email });
+    console.log(user, 'user');
 
     if (!user) {
-      throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !');
-    }
-    // checking if the user is already deleted
-
-    const isDeleted = user?.isDeleted;
-
-    if (isDeleted) {
-      throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted !');
+      throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
     }
 
-    // checking if the user is blocked
-    const userStatus = user?.status;
-
-    if (userStatus === false) {
-      throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked ! !');
+    if (user.isDeleted) {
+      throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!');
     }
 
-    // if (
-    //   user.passwordChangedAt &&
-    //   User.isJWTIssuedBeforePasswordChanged(
-    //     user.passwordChangedAt,
-    //     iat as number,
-    //   )
-    // ) {
-    //   throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized !');
-    // }
+    if (user.status === false) {
+      throw new AppError(httpStatus.FORBIDDEN, 'User is blocked!');
+    }
 
-    if (requiredRoles && !requiredRoles.includes(role)) {
-      throw new AppError(
-        httpStatus.UNAUTHORIZED,
-        'You are not authorized  hi!',
-      );
+    if (requiredRoles.length && !requiredRoles.includes(role)) {
+      throw new AppError(httpStatus.UNAUTHORIZED, 'Access denied!');
     }
 
     req.user = decoded as JwtPayload & { role: string };
+
     next();
   });
 };

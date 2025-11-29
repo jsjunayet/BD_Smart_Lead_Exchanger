@@ -9,7 +9,7 @@ export const getAllPaymentSetup = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/bkash`, {
       method: "GET",
       headers: {
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
       },
       next: {
         tags: ["PaymentSetup"],
@@ -33,7 +33,7 @@ export const createPaymentSetup = async (formdata: any): Promise<any> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/bkash`, {
       method: "POST",
       headers: {
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(formdata),
@@ -58,7 +58,7 @@ export const UpdatePaymentSetup = async (
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/bkash/${id}`, {
       method: "PATCH",
       headers: {
-        Authorization: ` ${token}`,
+        Authorization: ` Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -80,7 +80,7 @@ export const deletedPaymentSetup = async (id: string): Promise<any> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/bkash/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: ` ${token}`,
+        Authorization: ` Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });

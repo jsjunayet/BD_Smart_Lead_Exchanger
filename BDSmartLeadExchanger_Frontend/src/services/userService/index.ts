@@ -12,7 +12,7 @@ export const getAlluser = async () => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         next: {
@@ -56,7 +56,7 @@ export const getSingleuser = async () => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         next: {
@@ -81,7 +81,7 @@ export const getDashboardData = async () => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         next: {
@@ -107,7 +107,7 @@ export const UpdateProfile = async (userData: any) => {
       {
         method: "PATCH",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
@@ -128,7 +128,7 @@ export const UpdateProfile = async (userData: any) => {
 //     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/user/create`, {
 //       method: "POST",
 //       headers: {
-//         Authorization: `Bearer ${token}`,
+//         Authorization: `Bearer Bearer ${token}`,
 //         "Content-Type": "application/json",
 //       },
 //       body: JSON.stringify({ name }),
@@ -151,7 +151,7 @@ export const Approveduser = async (id: string, data: string): Promise<any> => {
       {
         method: "PATCH",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ data }),
@@ -175,7 +175,7 @@ export const userHomeUpdate = async (id: string): Promise<any> => {
       {
         method: "PATCH",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }
@@ -201,7 +201,7 @@ export const userRoleUpate = async (id: string, data: any): Promise<any> => {
       {
         method: "PATCH",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
@@ -225,7 +225,7 @@ export const deleteduser = async (id: string): Promise<any> => {
       {
         method: "DELETE",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }

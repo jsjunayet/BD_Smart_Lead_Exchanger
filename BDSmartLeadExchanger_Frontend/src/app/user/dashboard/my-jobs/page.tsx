@@ -745,14 +745,15 @@ const MyJobs = () => {
                                   </TableCell>
 
                                   <TableCell className="text-sm">
-                                    {submission.status === "submitted"
+                                    {/* {submission.status === "submitted"
                                       ? submissions[submission._id] !==
                                         undefined
                                         ? formatCountdown(
                                             submissions[submission._id]
                                           )
                                         : "Auto Approved"
-                                      : "--"}
+                                      : "--"} */}
+                                    "Auto Approve Off"
                                   </TableCell>
 
                                   <TableCell>
@@ -780,7 +781,7 @@ const MyJobs = () => {
                                                 submission.proofScreenshots
                                               }
                                               titles={job.screenshotTitles}
-                                              professionalName={`${submission.user.email}`}
+                                              professionalName={`${submission?.user?.email}`}
                                               maxPreview={4}
                                             />
                                           </DialogContent>

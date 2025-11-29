@@ -10,7 +10,7 @@ export const getAllReportService = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/reports`, {
       method: "GET",
       headers: {
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
       },
       next: {
         tags: ["ReportService"],
@@ -34,7 +34,7 @@ export const createReportService = async (formdata: any): Promise<any> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/reports`, {
       method: "POST",
       headers: {
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(formdata),
@@ -60,7 +60,7 @@ export const UpdateReportService = async (
       {
         method: "PATCH",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
@@ -85,7 +85,7 @@ export const OwnReportService = async (id: string): Promise<any> => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }

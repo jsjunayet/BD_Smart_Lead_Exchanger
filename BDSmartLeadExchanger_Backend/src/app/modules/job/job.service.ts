@@ -89,6 +89,7 @@ const jobPost = async (
   });
 
   await job.save();
+  console.log(job);
   return job;
 };
 
@@ -112,6 +113,7 @@ const updateJob = async (
     new: true,
     runValidators: true,
   });
+  console.log(result);
   return result;
 };
 
@@ -263,10 +265,11 @@ const getWorkplaceJobs = async (userId: string) => {
       select: 'name email surfingBalance', // only fetch these fields
     })
     .lean();
+  console.log(jobs);
 
   // 3️⃣ Filter out jobs where postedBy is null (no owner or owner balance <= 0)
   const filteredJobs = jobs.filter((job) => job.postedBy);
-
+  console.log(filteredJobs.length);
   return filteredJobs;
 };
 

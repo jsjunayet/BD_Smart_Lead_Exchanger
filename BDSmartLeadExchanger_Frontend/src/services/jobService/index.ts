@@ -10,7 +10,7 @@ export const getAlljobs = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/job/get-all`, {
       method: "GET",
       headers: {
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       next: {
@@ -34,7 +34,7 @@ export const getAllDataDashbaord = async () => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         next: {
@@ -59,7 +59,7 @@ export const getWorkPlace = async () => {
       {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         next: {
@@ -82,7 +82,7 @@ export const getOwnjobs = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/job/get-own`, {
       method: "GET",
       headers: {
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
       },
       next: {
         tags: ["jobs"],
@@ -105,7 +105,7 @@ export const createjobs = async (formdata: any): Promise<any> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/job/jobPost`, {
       method: "POST",
       headers: {
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json", // ✅ only for JSON
       },
       body: JSON.stringify(formdata),
@@ -128,7 +128,7 @@ export const Updatejobs = async (id: string, formdata: any): Promise<any> => {
       {
         method: "PATCH",
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formdata),
@@ -155,7 +155,7 @@ export const deletedSubmission = async (id: string): Promise<any> => {
       {
         method: "DELETE", // এখানে DELETED নয়, DELETE ব্যবহার করতে হবে
         headers: {
-          Authorization: `${token}`, // Bearer token সাধারণ practice
+          Authorization: `Bearer ${token}`, // Bearer token সাধারণ practice
         },
       }
     );
@@ -185,7 +185,7 @@ export const ApprovedOrRejectJobs = async (
       {
         method: "PATCH",
         headers: {
-          Authorization: ` ${token}`,
+          Authorization: ` Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ action: data }),
