@@ -41,49 +41,6 @@ interface WorkplaceJob {
   category: string;
   estimatedTime: string;
 }
-
-// export const workplaceJobs: WorkplaceJob[] = [
-//   {
-//     id: "1",
-//     title: "সাইনআপ করুন",
-//     description:
-//       "একটি নতুন ওয়েবসাইটে সাইনআপ করুন এবং ইমেইল ভেরিফিকেশন সম্পন্ন করুন।",
-//     requirements: "Valid email address, Phone number verification required",
-//     payment: 0.5,
-//     postedBy: "Dhiraj Roy",
-//     timeRemaining: "23h 45m",
-//     difficulty: "easy",
-//     category: "Sign Up",
-//     estimatedTime: "5 minutes",
-//   },
-//   {
-//     id: "2",
-//     title: "অ্যাপ ইনস্টল ও রিভিউ",
-//     description:
-//       "Play Store থেকে একটি অ্যাপ ইনস্টল করুন এবং ৫ স্টার রিভিউ দিন।",
-//     requirements: "Android device, Google Play Store access",
-//     payment: 0.75,
-//     postedBy: "Afran Sabbir",
-//     timeRemaining: "12h 20m",
-//     difficulty: "easy",
-//     category: "App Install",
-//     estimatedTime: "10 minutes",
-//   },
-//   {
-//     id: "3",
-//     title: "সোশ্যাল মিডিয়া ফলো",
-//     description:
-//       "Facebook, Instagram, এবং YouTube চ্যানেল ফলো করুন এবং স্ক্রিনশট জমা দিন।",
-//     requirements: "Active social media accounts",
-//     payment: 1.0,
-//     postedBy: "Hasan Ahmed",
-//     timeRemaining: "6h 15m",
-//     difficulty: "medium",
-//     category: "Social Media",
-//     estimatedTime: "15 minutes",
-//   },
-// ];
-
 const Workplace = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
@@ -118,7 +75,6 @@ const Workplace = () => {
 
     fetchJobs(); // ✅ Call the function
   }, []);
-  console.log(workplaceJobs, "worplace");
 
   const getDifficultyBadge = (difficulty: string) => {
     switch (difficulty) {
@@ -151,7 +107,7 @@ const Workplace = () => {
     if (selectedJob) {
       router.push(
         `/user/dashboard/workplace/${selectedJob?._id}?job=${encodeURIComponent(
-          JSON.stringify(selectedJob)
+          JSON.stringify(selectedJob?.title)
         )}`
       );
     }

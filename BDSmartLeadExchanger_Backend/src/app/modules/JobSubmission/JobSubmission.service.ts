@@ -1,6 +1,8 @@
 import httpStatus from 'http-status';
 import mongoose, { ClientSession } from 'mongoose';
 import AppError from '../../errors/AppError';
+import { agenda } from '../../utils/agenda';
+import { cancelAutoApproveJob } from '../../utils/autoApprove.job';
 import { IUser } from '../Auth/auth.interface';
 import { User } from '../Auth/auth.model';
 import { Job } from '../job/job.model';
@@ -35,6 +37,12 @@ const submitJob = async (
     status: 'submitted',
   });
 
+  const jobs = await agenda.schedule('in 5 hours', 'auto-approve-submission', {
+    submissionId: submission._id,
+  });
+
+  // Save job id so we can cancel it later
+  submission.autoApproveJobId = jobs.attrs._id.toString();
   await submission.save();
   return submission;
 };
@@ -185,15 +193,12 @@ export const reviewSubmission = async (
   }
 };
 
-// ---------------------------
-// ✅ Helper functions
-// ---------------------------
-
 async function handleAdminReview(
   submission: any,
   action: any,
   session: ClientSession,
 ): Promise<void> {
+  await cancelAutoApproveJob(submission);
   if (action.action === 'approve') {
     submission.status = 'approved';
     await User.findByIdAndUpdate(
@@ -229,16 +234,16 @@ async function handleRegularUserReview(
   if (!currentUser || currentUser.wallet <= 0) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Insufficient balance');
   }
-
+  await cancelAutoApproveJob(submission);
   if (action.action.action === 'approve') {
     submission.status = 'approved';
 
-    if (currentUser.surfingBalance <= 0) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        'Insufficient surfingBalance balance',
-      );
-    }
+    // if (currentUser.surfingBalance <= 0) {
+    //   throw new AppError(
+    //     httpStatus.BAD_REQUEST,
+    //     'Insufficient surfingBalance balance',
+    //   );
+    // }
 
     currentUser.surfingBalance -= 1;
     await currentUser.save({ session });

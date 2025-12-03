@@ -5,6 +5,7 @@ const JobSubmissionSchema = new Schema<IJobSubmission>(
   {
     job: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    autoApproveJobId: { type: Schema.Types.ObjectId, default: null },
     proofScreenshots: [String],
     status: {
       type: String,
@@ -14,6 +15,7 @@ const JobSubmissionSchema = new Schema<IJobSubmission>(
     submittedAt: { type: Date, default: Date.now },
     rejectReason: { type: String, default: '' },
   },
+
   { timestamps: true },
 );
 

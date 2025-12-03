@@ -199,29 +199,33 @@ const MyJobs = () => {
     }
   };
   const getSubmissionStats = (submissions: any[]) => {
-    const total = submissions.length;
-    const approved = submissions.filter((s) => s.status === "approved").length;
-    const submitted = submissions.filter(
+    const total = submissions?.length;
+    const approved = submissions?.filter(
+      (s) => s?.status === "approved"
+    ).length;
+    const submitted = submissions?.filter(
       (s) => s.status === "submitted"
     ).length;
-    const rejected = submissions.filter((s) => s.status === "rejected").length;
+    const rejected = submissions?.filter(
+      (s) => s?.status === "rejected"
+    ).length;
     return { total, approved, submitted, rejected };
   };
 
   const filteredData = myJobsData.filter((item) => {
     const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.postedBy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.postedBy.email.toLowerCase().includes(searchTerm.toLowerCase());
+      item?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item?.postedBy?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item?.postedBy?.email.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
   // NEW FUNCTION: Filters submissions by user name or email
   const getFilteredSubmissions = (job: any) => {
     if (!searchTerm2.trim()) {
-      return job.submissions; // Return all if no search term
+      return job?.submissions; // Return all if no search term
     }
 
-    return job.submissions.filter((submission: any) => {
+    return job?.submissions?.filter((submission: any) => {
       const searchLower = searchTerm2.toLowerCase();
       return (
         submission.user.name.toLowerCase().includes(searchLower) ||
@@ -391,10 +395,10 @@ const MyJobs = () => {
                         <div className="flex items-center space-x-1">
                           <ExternalLink className="h-3 w-3" />
                           <Link
-                            href={`${job.jobUrl}`}
+                            href={`${job?.jobUrl}`}
                             className="truncate max-w-[300px] cursor-pointer"
                           >
-                            {job.jobUrl}
+                            {job?.jobUrl}
                           </Link>
                         </div>
                         <div className="flex items-center space-x-1">
@@ -405,13 +409,15 @@ const MyJobs = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-4 text-sm">
-                        <span>Total: {stats.total}</span>
-                        <span className="text-success">✓ {stats.approved}</span>
+                        <span>Total: {stats?.total}</span>
+                        <span className="text-success">
+                          ✓ {stats?.approved}
+                        </span>
                         <span className="text-warning">
-                          ⏳ {stats.submitted}
+                          ⏳ {stats?.submitted}
                         </span>
                         <span className="text-destructive">
-                          ✗ {stats.rejected}
+                          ✗ {stats?.rejected}
                         </span>
                       </div>
                     </div>
@@ -421,7 +427,7 @@ const MyJobs = () => {
                         <div className="flex space-x-2">
                           <Button
                             size="sm"
-                            onClick={() => handleJobAction(job._id, "approve")}
+                            onClick={() => handleJobAction(job?._id, "approve")}
                             className="bg-primary hover:bg-primary/80"
                           >
                             {Loading ? (
@@ -472,7 +478,7 @@ const MyJobs = () => {
                                         Title:
                                       </span>
                                       <p className="text-muted-foreground">
-                                        {job.title}
+                                        {job?.title}
                                       </p>
                                     </div>
                                     <div>
@@ -480,7 +486,7 @@ const MyJobs = () => {
                                         Description:
                                       </span>
                                       <p className="text-muted-foreground">
-                                        {job.description}
+                                        {job?.description}
                                       </p>
                                     </div>
                                     <div>
@@ -488,7 +494,7 @@ const MyJobs = () => {
                                         Job URL:
                                       </span>
                                       <Link
-                                        href={job.jobUrl}
+                                        href={job?.jobUrl}
                                         passHref
                                         legacyBehavior
                                       >
@@ -497,7 +503,7 @@ const MyJobs = () => {
                                           rel="noopener noreferrer"
                                           className="text-muted-foreground break-all"
                                         >
-                                          {job.jobUrl}
+                                          {job?.jobUrl}
                                         </a>
                                       </Link>
                                     </div>
@@ -506,7 +512,7 @@ const MyJobs = () => {
                                         Screenshot Requirements:
                                       </span>
                                       <ul className="text-muted-foreground list-disc list-inside">
-                                        {job.screenshotTitles.map(
+                                        {job?.screenshotTitles?.map(
                                           (title: any, index: any) => (
                                             <li key={index}>{title}</li>
                                           )
@@ -524,7 +530,7 @@ const MyJobs = () => {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          setExpandedJob(isExpanded ? null : job._id)
+                          setExpandedJob(isExpanded ? null : job?._id)
                         }
                       >
                         <Eye className="h-3 w-3 mr-1" />
@@ -539,7 +545,7 @@ const MyJobs = () => {
                     <div className="border-t pt-4">
                       <div className="md:flex space-y-2 md:space-y-0 justify-between">
                         <h4 className="font-medium mb-4">
-                          Submissions ({stats.total})
+                          Submissions ({stats?.total})
                         </h4>
 
                         <div className="relative">
@@ -607,7 +613,7 @@ const MyJobs = () => {
                                   <TableCell>
                                     <div className="flex items-center space-x-2">
                                       <span className="text-sm">
-                                        {submission.proofScreenshots.length}{" "}
+                                        {submission?.proofScreenshots?.length}{" "}
                                         files
                                       </span>
                                       {submission?.proofScreenshots?.length >
@@ -628,7 +634,7 @@ const MyJobs = () => {
                                               screenshots={
                                                 submission?.proofScreenshots
                                               }
-                                              titles={job.screenshotTitles}
+                                              titles={job?.screenshotTitles}
                                               professionalName={
                                                 submission?.user?.email
                                               }
@@ -644,7 +650,7 @@ const MyJobs = () => {
                                   <TableCell>
                                     <div className="text-sm">
                                       {new Date(
-                                        submission.submittedAt
+                                        submission?.submittedAt
                                       ).toLocaleString()}
                                     </div>
                                   </TableCell>
@@ -655,7 +661,7 @@ const MyJobs = () => {
                                         size="sm"
                                         onClick={() =>
                                           handleSubmissionAction(
-                                            submission._id,
+                                            submission?._id,
                                             "approve"
                                           )
                                         }
@@ -669,7 +675,7 @@ const MyJobs = () => {
                                         variant="destructive"
                                         onClick={() =>
                                           handleSubmissionAction(
-                                            submission._id,
+                                            submission?._id,
                                             "reject"
                                           )
                                         }
@@ -680,7 +686,7 @@ const MyJobs = () => {
                                       <Button
                                         size="sm"
                                         onClick={() =>
-                                          handleDeleted(submission._id)
+                                          handleDeleted(submission?._id)
                                         }
                                         className="bg-primary hover:bg-primary/80"
                                       >
@@ -709,7 +715,7 @@ const MyJobs = () => {
                                         </DialogHeader>
                                         <div className="space-y-3">
                                           <p className=" text-sm text-red-600">
-                                            {submission.rejectReason}
+                                            {submission?.rejectReason}
                                           </p>
                                         </div>
                                       </DialogContent>

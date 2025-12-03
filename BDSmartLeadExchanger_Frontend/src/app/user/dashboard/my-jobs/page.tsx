@@ -99,7 +99,7 @@ const MyJobs = () => {
             if (sub.status === "submitted") {
               const submittedTime = new Date(sub.submittedAt).getTime();
               const deadline = submittedTime + 5 * 60 * 60 * 1000;
-              // const deadline = submittedTime + 6 * 60 * 1000;
+              // const deadline = submittedTime + 5 * 60 * 1000;
               const remaining = Math.floor((deadline - Date.now()) / 1000);
 
               if (remaining <= 0) {
@@ -745,15 +745,15 @@ const MyJobs = () => {
                                   </TableCell>
 
                                   <TableCell className="text-sm">
-                                    {/* {submission.status === "submitted"
+                                    {submission.status === "submitted"
                                       ? submissions[submission._id] !==
                                         undefined
                                         ? formatCountdown(
                                             submissions[submission._id]
                                           )
                                         : "Auto Approved"
-                                      : "--"} */}
-                                    "Auto Approve Off"
+                                      : "--"}
+                                    {/* "Auto Approve Off" */}
                                   </TableCell>
 
                                   <TableCell>

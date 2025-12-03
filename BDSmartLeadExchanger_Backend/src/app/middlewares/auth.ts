@@ -30,20 +30,17 @@ const auth = (...requiredRoles: string[]) => {
     }
 
     const token = tokenParts[1];
-    console.log(token, 'token');
 
     // Verify Token
     const decoded = jwt.verify(
       token,
       config.jwt_access_secret as string,
     ) as JwtPayload;
-    console.log(decoded, 'decoded');
 
     const { role, email } = decoded;
 
     // Check user
     const user = await User.findOne({ email });
-    console.log(user, 'user');
 
     if (!user) {
       throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
